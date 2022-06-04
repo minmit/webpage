@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "paper submission"
+AuthUserFile /people/mt822/submission/.htpasswd
+require valid-user
