@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CS 864: Programmable Networks (Winter 2023) </title>
+
+<style>
+
+*{
+ font-size:18px;
+}
+
+p{
+    font-size: 18px;
+}
+
+li {
+font-size:18px;
+}
+
+.ref{
+font-family: "Courier New", serif;
+}
+
+.header{
+	font-size:22px;
+    height: 36px;	
+	background-color:#97bfe8;
+	padding-top:10px;
+    padding-left:10px;
+}
+
+
+.event{
+	color:#0d56a1;
+	font-weight:bold;
+}
+
+a:link {
+  text-decoration: none;
+	color:#0d56a1;
+}
+
+a:visited {
+  text-decoration: none;
+	color:#0d56a1;
+}
+
+a:hover {
+  text-decoration: underline;
+	color:#0d56a1;
+}
+
+a:active {
+  text-decoration: underline;
+	color:#0d56a1;
+}
+
+.logistics-table td, th {
+    vertical-align: top;
+}
+
+.logistics-table td:nth-child(2){
+    padding-left:15px;
+}
+
+.logistics-table td:nth-child(1){
+	color:black;
+	font-weight:bold;
+}
+
+.spaced-out-list li{
+    padding-bottom:5px;
+}
+
+.cal table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+}
+
+.cal td, th {
+  border: 1px solid black;
+  text-align: left;
+  padding: 8px;
+}
+
+.cal tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+
+    </head>
+    <body>
+
+
+<h1 style="color:#0d56a1; text-indent:25px"> CS 864: Programmable Networks (Winter 2023) </h1>
+<hr>
+<div style="padding-left:20px;width:1200px">
+
+<table class="w3-table logistics-table" style="padding:5px">
+  <tr>
+    <td style="width:100px"></td>
+    <td></td>
+  </tr>
+<tr>
+  <td>Instructor</td>
+  <td><a href="https://mina.arashloo.net">Mina Tahmasbi Arashloo</a></td>
+</tr>
+
+<tr>
+  <td>Schedule</td>
+  <td>Tuesdays and Thursdays, 1:00 PM - 2:20 PM</td>
+</tr>
+
+<tr>
+  <td>Contact</td>
+  <td> Email. Please prefix the subject line of your email with [CS864] for a timely reply.
+</tr>
+
+<tr>
+  <td>Office Hours</td>
+  <td>By appointment.</td>
+</tr>
+
+<tr>
+  <td>Prerequisites</td>
+  <td> Familiarity with basic networking concepts such as different networking layers (e.g., data link, network, and transport layers), forwarding and routing, and common protocols (e.g., Ethernet, IP, UDP, TCP, HTTP, and DNS), through CS 464/664 or an equivalent course.</td>
+</tr>
+
+<tr>
+  <td>Location</td>
+  <td> DC 2568 for in-person classes, with a virtual component for remote participation or when the class is held online. </td>
+</tr>
+
+
+</table>
+
+
+<h3 class="header"> Overview</h3>
+<p>
+Modern computer networks are complex distributed systems, with thousands of heterogeneous software and hardware components working together to deliver traffic from sources to destinations. They serve applications that demand much more than basic network connectivity, asking for certain levels of performance and reliability from the network. Meeting these growing expectations requires running new and increasingly sophisticated algorithms and protocols in networking software and hardware.  
+
+<br/><br/>
+As such, as networks continue to grow in complexity, scale, and speed, it is simply not sustainable to operate and manage them by manually configuring a fixed set of algorithms and protocols through low-level command-line interfaces. That is why the networking community has spent the last decade rethinking how to design and operate networks using programming abstractions and automation. This includes, but is not limited to, designing programmable network hardware, developing domain-specific languages for programming it, and building automated tools to analyze and implement network functionality by distributing high-level programs across the network, compiling them to low-level instructions for the underlying hardware, or verifying their correctness.
+ 
+<br/><br/>
+In this course, we will study the literature on how programming abstractions and automation have been applied in different parts of the networking ecosystem and the benefits that have followed. Specifically, we will discuss the following (tentative list):
+
+<ul>
+<li> History of software-defined and programmable networks</li>
+<li> Common languages for programming the network data plane </li>
+<li> Programmable network switches and network interface cards (NICs) </li>
+<li> Programmability in software packet procesing frameworks </li>
+<li> Network verification </li>
+<li> Applications of network programmability in:
+    <ul>
+    <li> Traditional networks </li>
+    <li> Network monitoring and measurement </li>
+    <li> Network quality of service (QoS) </li>
+    <li> Acceleration of distributed applications </li>
+    </ul>
+</li>
+</ul>
+
+
+</p>
+
+
+<h3 class="header">Grading</h3>
+The final grade for the course will be based on the following components:
+
+<br/><br/>
+<span style="font-weight:bold">Reviews (25%):</span> A major component of this course is reading, reviewing, and discussing networking and systems papers. In preparation for in-class discussions, students are expected to write reviews for <u>two papers each week</u>. Each review should be ~500 words and contain the following sections, following the typical format of reviews in networking and systems conferences:
+<ul>
+<li> A concise summary of the paper (1 paragraph) </li>
+<li> A list of the paper's main strengths (at least 2 bullet points) </li>
+<li> A list of opportunities for improvement (at least 2 bullet points) </li>
+<li> Critical analysis and comments (justifying the strengths and improvement opportunities listed in the previous sections) </li>
+</ul>
+ 
+<span style="font-weight:bold">Paper Presentation (15%):</span> Each paper discussion starts by a 10-minute presentation by a student. Specifically, the presentor will describe the context and motivation behind the paper, the main problem the paper is trying to solve, the main design choices and/or techniques used in the solution, a summary of evaluation results, and 4-5 discussion questions. Each student is expected to do 1-2 presentations.
+
+<br/><br/>
+<span style="font-weight:bold"> Assignments (10%): </span> There are two assignments, each comprising 5% of the final grade. The purpose of the assignments is for the students to gain hands-on experience in using some of the common techniques and technologies used in programmable networks. One assignments focuses on implementing a simple network functionality using P4, one of the most common languages for programming the network data plane. The other assignment focuses on analyzing the correctness of a simple network functionality using existing analysis tools. Assignments are to be completed by <u>each student individually</u>.
+
+<br/><br/>
+<span style="font-weight:bold">Project (50%): </span> Student are expected to work (individually or in groups) on original research projects related to programmable networks. There are four deliverables for the project:
+<ul class="spaced-out-list">
+<li><b>Proposal:</b> Students are expected to discuss their project ideas with the instructor at the beginning of the term, and submit a one page proposal, providing a clear problem statement, context and motivation, and a high-level overview of related work, by the end of week 3. </li> 
+<li><b>Progress Report:</b> A month after the proposal, the students are expected to submit a 2 page progress report. </li> 
+<li><b>Presentation:</b> In the last week of classes, students will present their projects to the class. </li>
+<li><b>Final Report:</b> The final report, due at the end of the term, is a 6-page conference-style paper describing the problem statement and motivation, design, evaluation, related work, and future research directions.</li>
+</ul> 
+
+<h3 class="header" id="course-calendar">Schedule </h3>
+
+Coming soon. 
+<!--
+<table class="cal">
+  <tr>
+    <th>#</th>
+     <th style="width:80px">Date</th>
+    <th style="width:600px">Topics</th>
+    <th style="width:180px">Assigned Reading</th>
+    <th style="width:310px">Extra References</th>
+    <th style="width:100px">Notes</th>
+    <th style="width:100px">Psets</th>
+ </tr>
+
+
+  <tr>
+    <td> 1 </td>
+    <td> Tue 09/01</td>
+    <td> Course Policy, Graph Streaming, Communication Complexity</td>
+    <td> -- </td>
+    <td> <span class="ref"> <a href="#FKMSZ04">FKMSZ04</a>, <a href="#B08">B08</a></td>
+    <td> <a href="cs671-f20/lec1.pdf">[lec1]</td>
+    <td> <a href="cs671-f20/problem-set-1.pdf">[pset1]</a> </td>
+  </tr>
+
+
+  <tr>
+    <td>  </td>
+    <td> Tue 09/08</td>
+    <td> <span style="color:red">No Class: Monday's schedule</span> </td>
+    <td></td>
+    <td></td>
+    <td>  </td>
+    <td>  </td>
+</tr>
+
+
+</table>
+-->
+<br/><br/>
+   </body>
+</html>
+
