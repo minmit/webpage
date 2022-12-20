@@ -87,6 +87,14 @@ a:active {
   background-color: #dddddd;
 }
 
+.reference-table td:nth-child(1){
+    width: 8%;
+}
+
+.reference-table td:nth-child(2){
+    width: 92%;
+}
+
 </style>
 
     </head>
@@ -204,7 +212,7 @@ Following is the schedule of lectures and paper discussions.
     <th style="width:110px">Dates</th>
     <th style="width:50px">Slides</th>
     <th style="width:150px">Papers for Review</th>
-    <th style="width:200px">Other Resources</th>
+    <th style="width:190px">Other Resources</th>
     <th style="width:220px">Project and Assignments</th>
  </tr>
 
@@ -213,8 +221,8 @@ Following is the schedule of lectures and paper discussions.
     <td> 0. Course Introduction </td>
     <td> Tue - Jan 10 </td>
     <td> <a href="">[lec00]</a> </td>
-    <td> </td>
-    <td> </td>
+    <td> <a href="#MAB08">MAB<sup>+</sup>08</a>, <a href="#FHF11">FHF<sup>+</sup>11</a></td>
+    <td> <a href="#AFG14">AFG<sup>+</sup>14</a></td>
     <td> </td>
   </tr>
   
@@ -364,6 +372,36 @@ Following is the schedule of lectures and paper discussions.
 </table>
 
 <br/><br/>
+
+<h3 class="header" id="references">References </h3>
+
+<table class="reference-table" width="100%"style="padding-left:20pt; border-spacing: 0 10px; ">
+
+<tbody>
+<!--
+<tr id=""> 
+<td class="ref"> </td>
+<td> , <a href="papers/"> </a>. .</td>
+</tr>
+-->
+
+<tr id="MAB08"> 
+<td class="ref"> MAB<sup>+</sup>08 </td>
+<td> Nick McKeown, Tom Anderson, Hari Balakrishnan, Guru Parulkar, Larry Peterson, Jennifer Rexford, Scott Shenker, Jonathan Turner, <a href="papers/openflow08.pdf">OpenFlow: enabling innovation in campus networks</a>. ACM SIGCOMM CCR 2008.</td>
+</tr>
+
+<tr id="FHF11"> 
+<td class="ref"> FHF<sup>+</sup>11 </td>
+<td> Nate Foster, Rob Harrison, Michael J. Freedman, Christopher Monsanto, Jennifer Rexford, Alec Story, David Walker, <a href="papers/frenetic11.pdf">Frenetic: A network programming language</a>. ACM ICFP 2011.</td>
+</tr>
+
+<tr id="AFG14"> 
+<td class="ref"> AFG<sup>+</sup>14</td>
+<td> Carolyn Jane Anderson, Nate Foster, Arjun Guha, Jean-Baptiste Jeannin, Dexter Kozen, Cole Schlesinger, David Walker, <a href="papers/">NetKAT: Semantic foundations for networks</a>. ACM POPL 2014.</td>
+</tr>
+
+</tbody></table>
    </body>
 </html>
+
 
