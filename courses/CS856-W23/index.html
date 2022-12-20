@@ -86,6 +86,7 @@ a:active {
 .cal tr:nth-child(even) {
   background-color: #dddddd;
 }
+
 </style>
 
     </head>
@@ -177,7 +178,7 @@ The final grade for the course will be based on the following components:
 <li> Critical analysis and comments (justifying the strengths and improvement opportunities listed in the previous sections) </li>
 </ul>
  
-<span style="font-weight:bold">Paper Presentation (15%):</span> Each paper discussion starts by a 10-minute presentation by a student. Specifically, the presentor will describe the context and motivation behind the paper, the main problem the paper is trying to solve, the main design choices and/or techniques used in the solution, a summary of evaluation results, and 4-5 discussion questions. Each student is expected to do 1-2 presentations.
+<span style="font-weight:bold">Paper Presentation (15%):</span> Each paper discussion starts by a 10-minute presentation by a student. Specifically, the presenter will describe the context and motivation behind the paper, the main problem the paper is trying to solve, the main design choices and/or techniques used in the solution, a summary of evaluation results, and 4-5 discussion questions. Each student is expected to do 1-2 presentations.
 
 <br/><br/>
 <span style="font-weight:bold"> Assignments (10%): </span> There are two assignments, each comprising 5% of the final grade. The purpose of the assignments is for the students to gain hands-on experience in using some of the common techniques and technologies used in programmable networks. One assignment focuses on implementing a simple network functionality using P4, one of the most common languages for programming the network data plane. The other assignment focuses on analyzing the correctness of a simple network functionality using existing analysis tools. Assignments are to be completed by <u>each student individually</u>.
@@ -193,44 +194,175 @@ The final grade for the course will be based on the following components:
 
 <h3 class="header" id="course-calendar">Schedule </h3>
 
-Coming soon. 
-<!--
+Following is the schedule of lectures and paper discussions.
+<br/><br/> 
+
 <table class="cal">
+
   <tr>
-    <th>#</th>
-     <th style="width:80px">Date</th>
-    <th style="width:600px">Topics</th>
-    <th style="width:180px">Assigned Reading</th>
-    <th style="width:310px">Extra References</th>
-    <th style="width:100px">Notes</th>
-    <th style="width:100px">Psets</th>
+    <th style="width:400px">Topic</th>
+    <th style="width:100px">Dates</th>
+    <th style="width:50px">Slides</th>
+    <th style="width:150px">Papers for Review</th>
+    <th style="width:200px">Other Resources</th>
+    <th style="width:220px">Project and Assignments</th>
  </tr>
 
+<!--- Intro --->
+  <tr>
+    <td> 0. Course Introduction </td>
+    <td> Tue - Jan 10 </td>
+    <td> <a href="">[lec00]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+  
+<!--- Week 1 --->
 
   <tr>
-    <td> 1 </td>
-    <td> Tue 09/01</td>
-    <td> Course Policy, Graph Streaming, Communication Complexity</td>
-    <td> -- </td>
-    <td> <span class="ref"> <a href="#FKMSZ04">FKMSZ04</a>, <a href="#B08">B08</a></td>
-    <td> <a href="cs671-f20/lec1.pdf">[lec1]</td>
-    <td> <a href="cs671-f20/problem-set-1.pdf">[pset1]</a> </td>
+    <td> 1. SDN and OpenFlow </td>
+    <td> Thu - Jan 12 <br/> Tue - Jan 17 </td>
+    <td> <a href="">[lec01]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+<!--- Week 2 --->
+
+  <tr>
+    <td> 2. Programming the Data Plane with P4 </td>
+    <td> Thu - Jan 19 <br/> Tue - Jan 24 </td>
+    <td> <a href="">[lec02]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> Assignment 1 is released </td>
   </tr>
 
+<!--- Week 3 --->
 
   <tr>
-    <td>  </td>
-    <td> Tue 09/08</td>
-    <td> <span style="color:red">No Class: Monday's schedule</span> </td>
-    <td></td>
-    <td></td>
-    <td>  </td>
-    <td>  </td>
-</tr>
+    <td> 3. Programmable Switch Architectures </td>
+    <td> Thu - Jan 26 <br/> Tue - Jan 31 </td>
+    <td> <a href="">[lec03]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> Project proposal is due </td>
+  </tr>
+ 
+<!--- Week 4 --->
 
+  <tr>
+    <td> 4. "Smart" Network Interface Cards </td>
+    <td> Thu - Feb 2 <br/> Tue - Feb 7 </td>
+    <td> <a href="">[lec04]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> Assignment 1 is due </td>
+  </tr>
+ 
+<!--- Week 5 --->
 
+  <tr>
+    <td> 5. Programming Software Network Stacks </td>
+    <td> Thu - Feb 9 <br/> Tue - Feb 14 </td>
+    <td> <a href="">[lec05]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+
+<!--- Week 6 - Part 1 --->
+
+  <tr>
+    <td> 6. Applications to Traditional Networks </td>
+    <td> Thu - Feb 16 </td>
+    <td> <a href="">[lec06]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+
+<!--- Reading Week --->
+  <tr>
+    <td colspan=6 style="text-align: center; color:red; background-color:white"> <b> Reading Week </b> </td>
+  </tr>
+
+<!--- Week 6 - Part 2 --->
+
+  <tr>
+    <td> 6. Applications to Traditional Networks (Continued) </td>
+    <td> Tue - Feb 28 </td>
+    <td> <a href="">[lec07]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> Project progress report is due </td>
+  </tr>
+
+<!--- Week 7 --->
+
+  <tr>
+    <td> 7. Network Verification </td>
+    <td> Thu - Mar 2 <br/> Tue - Mar 7 </td>
+    <td> <a href="">[lec08]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> Assignment 2 is released </td>
+  </tr>
+  
+<!--- Week 8 --->
+
+  <tr>
+    <td> 8. Flexible &amp; Fine-Grained Network Monitoring </td>
+    <td> Thu - Mar 9 <br/> Tue - Mar 14 </td>
+    <td> <a href="">[lec09]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+
+<!--- Week 9 --->
+
+  <tr>
+    <td> 9. Applications to Transport and Network QoS </td>
+    <td> Thu - Mar 16 <br/> Tue - Mar 21 </td>
+    <td> <a href="">[lec10]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> Assignment 2 is due</td>
+  </tr>
+
+<!--- Week 10 --->
+
+  <tr>
+    <td> 10. In-Network Computing </td>
+    <td> Thu - Mar 23 <br/> Tue - Mar 28 </td>
+    <td> <a href="">[lec11]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+
+<!--- Week 11 --->
+
+  <tr>
+    <td> 11. Miscellaneous </td>
+    <td> Thu - Mar 30 </td>
+    <td> <a href="">[lec12]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+
+<!--- Week 12 --->
+
+  <tr>
+    <td colspan=6 style="text-align: center; color:red; background-color:white"> <b> Project Presentations: Thu - Apr 4 &amp; Tue - Apr 6 <br/>
+    Final Project Report Due Mon - Apr 10</b> </td>
+  </tr>
+  
 </table>
--->
+
 <br/><br/>
    </body>
 </html>
