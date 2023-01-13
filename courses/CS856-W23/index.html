@@ -88,11 +88,11 @@ a:active {
 }
 
 .reference-table td:nth-child(1){
-    width: 8%;
+    width: 10%;
 }
 
 .reference-table td:nth-child(2){
-    width: 92%;
+    width: 90%;
 }
 
 </style>
@@ -232,10 +232,10 @@ Following is the schedule of lectures and paper discussions.
     <td> 1. SDN and OpenFlow </td>
     <td> Thu - Jan 12 <br/> Tue - Jan 17 </td>
     <td> <a href="lectures/lec01.pdf">[lec01]</a> </td>
-    <td> <a href="#GHM05">GHM<sup>+</sup>05</a>, 
-         <a href="#FHF11">FHF<sup>+</sup>11</a></td>
-    <td> <a href="#MAB08">MAB<sup>+</sup>08</a>,
-         <a href="#AFG14">AFG<sup>+</sup>14</a></td> 
+    <td> <a href="#GHM05">4D</a>, 
+         <a href="#FHF11">Frenetic</a></td>
+    <td> <a href="#MAB08">OpenFlow</a>,
+         <a href="#AFG14">NetKAT</a></td> 
     <td> </td>
   </tr>
 <!--- Week 2 --->
@@ -244,13 +244,13 @@ Following is the schedule of lectures and paper discussions.
     <td> 2. Programming the Data Plane with P4 </td>
     <td> Thu - Jan 19 <br/> Tue - Jan 24 </td>
     <td> <a href="">[lec02]</a> </td>
-    <td> <a href="#BDG14">BDG<sup>+</sup>14</a>,
-         <a href="#BD17">BD17</a></td>
-    <td> <a href="#P4ORG">P4ORG</a>,
-         <a href="#SCB16">SCB<sup>+</sup>16</a>,
-         <a href="#YSL20">YSL20</a>,
-         <a href="#SRK20">SRK<sup>+</sup>20</a>,
-         <a href="#HLT22">HLT<sup>+</sup>22</a>
+    <td> <a href="#BDG14">P4</a>,
+         <a href="#BD17">P4<sub style="font-size: 12px">16</sub></a></td>
+    <td> <a href="https://p4.org">p4.org</a>,
+         <a href="#SCB16">Domino</a>,
+         <a href="#YSL20">Mantis</a>,
+         <a href="#SRK20">MicroP4</a>,
+         <a href="#HLT22">P4All</a>
     </td>
     <td> Assignment 1 is released </td>
   </tr>
@@ -261,12 +261,12 @@ Following is the schedule of lectures and paper discussions.
     <td> 3. Programmable Switch Architectures </td>
     <td> Thu - Jan 26 <br/> Tue - Jan 31 </td>
     <td> <a href="">[lec03]</a> </td>
-    <td> <a href="#BGK13">BGK<sup>+</sup>13</a>,
+    <td> <a href="#BGK13">RMT</a>,
          <a href="#JYV15">JYV<sup>+</sup>15</a>
     </td>
-    <td> <a href="#CFM17">CFM<sup>+</sup>17</a>,
-         <a href="#XHK22">XHK<sup>+</sup>22</a>,
-         <a href="#YBK23">YBK<sup>+</sup>23</a>
+    <td> <a href="#CFM17">dRMT</a>,
+         <a href="#XHK22">FlexCore</a>,
+         <a href="#YBK23">Trio</a>
     </td>
     <td> Project proposal is due </td>
   </tr>
@@ -277,7 +277,9 @@ Following is the schedule of lectures and paper discussions.
     <td> 4. "Smart" Network Interface Cards </td>
     <td> Thu - Feb 2 <br/> Tue - Feb 7 </td>
     <td> <a href="">[lec04]</a> </td>
-    <td> TBD </td>
+    <td> <a href="#FPM18">AccelNet</a>,
+         <a href="#LCS19">iPipe</a>
+    </td>
     <td> TBD </td>
     <td> Assignment 1 is due </td>
   </tr>
@@ -454,62 +456,57 @@ We acknowledge that we live and work on the traditional territory of the Neutral
 -->
 
 <tr id="GHM05"> 
-<td class="ref"> GHM<sup>+</sup>05</td>
+<td class="ref"> 4D</td>
 <td> Albert Greenberg, Gisli Hjalmtysson, David A. Maltz, Andy Myers, Jennifer Rexford, Geoffrey Xie, Hong Yan, Jibin Zhan, Hui Zhang. <a href="papers/4d-05.pdf">A clean slate 4D approach to network control and management</a>. ACM SIGCOMM CCR 2005.</td>
 </tr>
 
 <tr id="FHF11"> 
-<td class="ref"> FHF<sup>+</sup>11 </td>
+<td class="ref"> Frenetic </td>
 <td> Nate Foster, Rob Harrison, Michael J. Freedman, Christopher Monsanto, Jennifer Rexford, Alec Story, David Walker. <a href="papers/frenetic-11.pdf">Frenetic: A network programming language</a>. ACM ICFP 2011.</td>
 </tr>
 
 <tr id="MAB08"> 
-<td class="ref"> MAB<sup>+</sup>08 </td>
+<td class="ref"> OpenFlow </td>
 <td> Nick McKeown, Tom Anderson, Hari Balakrishnan, Guru Parulkar, Larry Peterson, Jennifer Rexford, Scott Shenker, Jonathan Turner. <a href="papers/openflow-08.pdf">OpenFlow: enabling innovation in campus networks</a>. ACM SIGCOMM CCR 2008.</td>
 </tr>
 
 <tr id="AFG14"> 
-<td class="ref"> AFG<sup>+</sup>14</td>
+<td class="ref"> NetKAT</td>
 <td> Carolyn Jane Anderson, Nate Foster, Arjun Guha, Jean-Baptiste Jeannin, Dexter Kozen, Cole Schlesinger, David Walker. <a href="papers/netkat-14.pdf">NetKAT: Semantic foundations for networks</a>. ACM POPL 2014.</td>
 </tr>
 
 <tr id="BDG14"> 
-<td class="ref"> BDG<sup>+</sup>14</td>
+<td class="ref"> P4</td>
 <td> Pat Bosshart, Dan Daly, Glen Gibb, Martin Izzard, Nick McKeown, Jennifer Rexford, Cole Schlesinger et al. <a href="papers/p4-14.pdf">P4: Programming protocol-independent packet processors</a>. ACM SIGCOMM CCR 2014.</td>
 </tr>
 
 <tr id="BD17"> 
-<td class="ref"> BD17</td>
+<td class="ref"> P4<sub style="font-size:12px">16</sub></td>
 <td> Mihai Budiu, Chris Dodd. <a href="papers/p416-17.pdf">The P4<sub style="font-size: smaller">16</sub> programming language</a>. ACM SIGOPS OSR 2017.</td>
 </tr>
 
-<tr id="P4ORG"> 
-<td class="ref"> P4ORG </td>
-<td><a href="https://p4.org">P4 - Language Consortium</a></td>
-</tr>
-
 <tr id="SCB16"> 
-<td class="ref"> SCB<sup>+</sup>16</td>
+<td class="ref"> Domino</td>
 <td> Anirudh Sivaraman, Alvin Cheung, Mihai Budiu, Changhoon Kim, Mohammad Alizadeh, Hari Balakrishnan, George Varghese, Nick McKeown, Steve Licking. <a href="papers/domino-16.pdf">Packet transactions: High-level programming for line-rate switches</a>. ACM SIGCOMM 2016.</td>
 </tr>
 
 <tr id="YSL20"> 
-<td class="ref"> YSL20</td>
+<td class="ref"> Mantis</td>
 <td> Liangcheng Yu, John Sonchack, Vincent Liu. <a href="papers/mantis-20.pdf">Mantis: Reactive programmable switches</a>. ACM SIGCOMM 2020.</td>
 </tr>
 
 <tr id="SRK20"> 
-<td class="ref"> SRK<sup>+</sup>20</td>
+<td class="ref"> MicroP4</td>
 <td> Hardik Soni, Myriana Rifai, Praveen Kumar, Ryan Doenges, Nate Foster. <a href="papers/microp4-20.pdf">Composing dataplane programs with &#181;P4</a>. ACM SIGCOMM 2020.</td>
 </tr>
 
 <tr id="HLT22"> 
-<td class="ref"> HLT<sup>+</sup>22</td>
+<td class="ref"> P4All</td>
 <td> Mary Hogan, Shir Landau-Feibish, Mina Tahmasbi Arashloo, Jennifer Rexford, David Walker. <a href="papers/p4all-22.pdf">Modular switch programming under resource constraints</a>. USENIX NSDI 2022.</td>
 </tr>
 
 <tr id="BGK13"> 
-<td class="ref"> BGK<sup>+</sup>13</td>
+<td class="ref"> RMT</td>
 <td> Pat Bosshart, Glen Gibb, Hun-Seok Kim, George Varghese, Nick McKeown, Martin Izzard, Fernando Mujica, Mark Horowitz. <a href="papers/rmt-13.pdf">Forwarding metamorphosis: Fast programmable match-action processing in hardware for SDN</a>. ACM SIGCOMM 2013.</td>
 </tr>
 
@@ -519,19 +516,30 @@ We acknowledge that we live and work on the traditional territory of the Neutral
 </tr>
 
 <tr id="CFM17"> 
-<td class="ref"> CFM<sup>+</sup>17</td>
+<td class="ref"> dRMT</td>
 <td> Sharad Chole, Andy Fingerhut, Sha Ma, Anirudh Sivaraman, Shay Vargaftik, Alon Berger, Gal Mendelson et al. <a href="papers/drmt-17.pdf">dRMT: Disaggregated programmable switching</a>. ACM SIGCOMM 2017.</td>
 </tr>
 
 <tr id="XHK22"> 
-<td class="ref"> XHK<sup>+</sup>22</td>
+<td class="ref"> FlexCore</td>
 <td> Jiarong Xing, Kuo-Feng Hsu, Matty Kadosh, Alan Lo, Yonatan Piasetzky, Arvind Krishnamurthy, Ang Chen. <a href="papers/runtime-22.pdf">Runtime programmable switches</a>. USENIX NSDI 2022.</td>
 </tr>
 
 <tr id="YBK23"> 
-<td class="ref"> YBK<sup>+</sup>23</td>
+<td class="ref"> Trio</td>
 <td> Mingran Yang, Alex Baban, Valery Kugel, Jeff Libby, Scott Mackie, Swamy Sadashivaiah Renu Kananda, Chang-Hong Wu, Manya Ghobadi. <a href="papers/trio-23.pdf">Using Trio: juniper networks' programmable chipset-for emerging in-network applications</a>. ACM SIGCOMM 2023.</td>
 </tr>
+
+<tr id="FPM18"> 
+<td class="ref"> AccelNet</td>
+<td>Daniel Firestone, Andrew Putnam, Sambhrama Mundkur, Derek Chiou, Alireza Dabagh, Mike Andrewartha, Hari Angepat et al. <a href="papers/accelnet-18.pdf">Azure Accelerated Networking:SmartNICs in the public cloud</a>. USENIX NSDI 2018.</td>
+</tr>
+
+<tr id="LCS19"> 
+<td class="ref"> iPipe</td>
+<td>Ming Liu, Tianyi Cui, Henry Schuh, Arvind Krishnamurthy, Simon Peter, and Karan Gupta. <a href="papers/ipipe-19.pdf">Offloading distributed applications onto smartnics using iPipe</a>. ACM SIGCOMM 2019.</td>
+</tr>
+
 </tbody></table>
    </body>
 </html>
