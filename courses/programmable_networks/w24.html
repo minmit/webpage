@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CS 856: Programmable Networks (Winter 2024) </title>
+
+<style>
+
+*{
+ font-size:18px;
+}
+
+p{
+    font-size: 18px;
+}
+
+li {
+font-size:18px;
+}
+
+.ref{
+font-family: "Courier New", serif;
+}
+
+.header{
+	font-size:22px;
+    height: 36px;	
+	background-color:#97bfe8;
+	padding-top:10px;
+    padding-left:10px;
+}
+
+
+.event{
+	color:#0d56a1;
+	font-weight:bold;
+}
+
+a:link {
+  text-decoration: none;
+	color:#0d56a1;
+}
+
+a:visited {
+  text-decoration: none;
+	color:#0d56a1;
+}
+
+a:hover {
+  text-decoration: underline;
+	color:#0d56a1;
+}
+
+a:active {
+  text-decoration: underline;
+	color:#0d56a1;
+}
+
+.logistics-table td, th {
+    vertical-align: top;
+}
+
+.logistics-table td:nth-child(2){
+    padding-left:15px;
+}
+
+.logistics-table td:nth-child(1){
+	color:black;
+	font-weight:bold;
+}
+
+.spaced-out-list li{
+    padding-bottom:5px;
+}
+
+.cal table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+}
+
+.cal td, th {
+  border: 1px solid black;
+  text-align: left;
+  padding: 8px;
+}
+
+.cal tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+.reference-table td:nth-child(1){
+    width: 10%;
+}
+
+.reference-table td:nth-child(2){
+    width: 90%;
+}
+
+</style>
+
+    </head>
+    <body>
+
+
+<h1 style="color:#0d56a1; text-indent:25px; font-size:30px"> CS 856: Programmable Networks (Winter 2024) </h1>
+<hr>
+<div style="padding-left:20px;width:1200px">
+
+<table class="w3-table logistics-table" style="padding:5px">
+  <tr>
+    <td style="width:100px"></td>
+    <td></td>
+  </tr>
+<tr>
+  <td>Instructor</td>
+  <td><a href="https://mina.arashloo.net">Mina Tahmasbi Arashloo</a></td>
+</tr>
+
+<tr>
+  <td>Schedule</td>
+  <td>Tuesdays and Thursdays, 12:00 PM - 1:20 PM</td>
+</tr>
+
+<tr>
+  <td>Contact</td>
+  <td> Email. Please prefix the subject line of your email with [CS856] for a timely reply.
+</tr>
+
+<tr>
+  <td>Office Hours</td>
+  <td>By appointment.</td>
+</tr>
+
+<tr>
+  <td>Prerequisites</td>
+  <td> Familiarity with basic networking concepts such as different networking layers (e.g., data link, network, and transport layers), forwarding and routing, and common protocols (e.g., Ethernet, IP, UDP, TCP, HTTP, and DNS), through CS 456/656 or an equivalent course.</td>
+</tr>
+
+<tr>
+  <td>Location</td>
+  <td> DC 2585</td>
+</tr>
+
+
+</table>
+
+
+<h3 class="header"> Overview</h3>
+<p>
+Modern computer networks are complex distributed systems, with thousands of heterogeneous software and hardware components working together to deliver traffic from sources to destinations. They serve applications that demand much more than basic network connectivity, asking for certain levels of performance and reliability from the network. Meeting these growing expectations requires running new and increasingly sophisticated algorithms and protocols in networking software and hardware.  
+
+<br/><br/>
+As such, as networks continue to grow in complexity, scale, and speed, it is simply not sustainable to operate and manage them by manually configuring a fixed set of algorithms and protocols through low-level command-line interfaces. That is why the networking community has spent the last decade rethinking how to design and operate networks using programming abstractions and automation. This includes, but is not limited to, designing programmable network hardware, developing domain-specific languages for programming it, and building automated tools to analyze and implement network functionality by distributing high-level programs across the network, compiling them to low-level instructions for the underlying hardware, or verifying their correctness.
+ 
+<br/><br/>
+In this course, we will study the literature on how programming abstractions and automation have been applied in different parts of the networking ecosystem and the benefits that have followed. Specifically, we will discuss the following (tentative list):
+
+<ul>
+<li> History of software-defined and programmable networks</li>
+<li> Common languages for programming the network data plane </li>
+<li> Programmable network switches and network interface cards (NICs) </li>
+<li> Programmability in software packet procesing frameworks </li>
+<li> Network verification </li>
+<li> Applications of network programmability in:
+    <ul>
+    <li> Traditional networks </li>
+    <li> Network monitoring and measurement </li>
+    <li> Network quality of service (QoS) </li>
+    <li> Acceleration of distributed applications </li>
+    </ul>
+</li>
+</ul>
+
+
+</p>
+
+
+<h3 class="header">Grading</h3>
+The final grade for the course will be based on the following components:
+
+<br/><br/>
+<span style="font-weight:bold">Reviews (20%):</span> A major component of this course is reading, reviewing, and discussing networking and systems papers. In preparation for in-class discussions, students are expected to write reviews for <u>two papers each week</u>. Each review should be ~500 words and contain the following sections, following the typical format of reviews in networking and systems conferences:
+<ol>
+<li> <b>Summary:</b> A concise summary of the paper (1 paragraph) </li>
+<li> <b> Strenghts:</b> A list of the paper's main strengths (at least 2 bullet points) </li>
+<li> <b> Opportunities for improvement:</b> A list of opportunities for improvement (at least 2 bullet points) </li>
+<li> <b> Critical analysis: </b> bulk of the review, justifying the strengths and improvement opportunities listed in the previous sections) </li>
+<li> <b> Trade-offs:</b> When it comes to systems, there is almost never a free lunch -- every system has to make some sort of trade-off. Some examples are latency vs throughput or flexibility vs performance. This is a paragraph or two about the trade-off space that is relevant to the proposed approach of the paper, and where the proposed approach is in that trade-off space. 
+</ol>
+ 
+<span style="font-weight:bold">Paper Presentation (15%):</span> Each paper discussion starts by a 10-minute presentation by a student. Specifically, the presenter will describe the context and motivation behind the paper, the main problem the paper is trying to solve, the main design choices and/or techniques used in the solution, a summary of evaluation results, and 4-5 discussion questions. Each student is expected to do 1-2 presentations.
+
+<br/><br/>
+
+<span style="font-weight:bold">In-class Discussion (10%):</span> Effective participation in in-class discussions about papers.
+
+<br/><br/>
+
+<span style="font-weight:bold"> Light programming assignment (5% + Bonus): </span> The purpose of the programming assignment is for the students to gain hands-on experience in using some of the common techniques and technologies used in programmable networks. The required assignment focuses on implementing a simple network functionality using P4, one of the most common languages for programming the network data plane. There is an optional assignment, worth an extra 5%, which focuses on analyzing the correctness of a simple network functionality using existing analysis tools. Assignments are to be completed by <u>each student individually</u>.
+
+<br/><br/>
+<span style="font-weight:bold">Project (50%): </span> Student are expected to work (individually or in groups) on original research projects related to programmable networks. There are four deliverables for the project:
+<ul class="spaced-out-list">
+<li><b>Proposal:</b> Students are expected to discuss their project ideas with the instructor at the beginning of the term, and submit a one page proposal, providing a clear problem statement, context and motivation, and a high-level overview of related work, by the end of week 3. </li> 
+<li><b>Progress Report:</b> A month after the proposal, the students are expected to submit a 2 page progress report. </li> 
+<li><b>Presentation:</b> In the last week of March, students will present their projects to the class. </li>
+<li><b>Final Report:</b> The final report, due at the end of the term, is a 6-page conference-style paper describing the problem statement and motivation, design, evaluation, related work, and future research directions.</li>
+</ul> 
+
+<h3 class="header" id="course-calendar">Schedule </h3>
+
+Following is the schedule of lectures and paper discussions.
+<br/><br/> 
+
+<table class="cal">
+
+  <tr>
+    <th style="width:400px">Topic</th>
+    <th style="width:110px">Dates</th>
+    <th style="width:50px">Slides</th>
+    <th style="width:150px">Papers for Review</th>
+    <th style="width:210px">Other Resources</th>
+    <th style="width:230px">Project and Assignments</th>
+ </tr>
+
+<!--- Intro --->
+  <tr>
+    <td> 0. Course Introduction </td>
+    <td> Tue - Jan 9 </td>
+    <td> <a href="lectures/w24/lec00.pdf">[lec00]</a> </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+  </tr>
+  
+<!--- Week 1 --->
+
+  <tr>
+    <td> 1. SDN and OpenFlow </td>
+    <td> Thu - Jan 11 <br/> Tue - Jan 16 </td>
+    <td> <a href="lectures/w24/lec01.pdf">[lec01]</a> </td>
+    <td> <a href="#GHM05">4D</a>, 
+         <a href="#FHF11">Frenetic</a></td>
+    <td> <a href="#MAB08">OpenFlow</a>,
+         <a href="#AFG14">NetKAT</a></td> 
+    <td> </td>
+  </tr>
+<!--- Week 2 --->
+
+  <tr>
+    <td> 2. Programming the Data Plane with P4 </td>
+    <td> Thu - Jan 18 <br/> Tue - Jan 23 </td>
+    <td> <a href="lectures/w24/lec02.pdf">[lec02]</a> </td>
+    <td> <a href="#BDG14">P4</a>,
+         <a href="#BD17">P4<sub style="font-size: 12px">16</sub></a></td>
+    <td> <a href="https://p4.org">p4.org</a>,
+         <a href="#SCB16">Domino</a>,
+         <a href="#YSL20">Mantis</a>,
+         <a href="#SRK20">MicroP4</a>,
+         <a href="#HLT22">P4All</a>
+    </td>
+    <!--<td><a href="https://github.com/minmit/p4-exercises">Assignment 1 is released</a></td>-->
+    <td>Assignment 1 is released</td>
+  </tr>
+
+<!--- Week 3 --->
+
+  <tr>
+    <td> 3. Programmable Switch Architectures </td>
+    <td> Thu - Jan 25 <br/> Tue - Jan 30 </td>
+    <td> <a href="lectures/w24/lec03.pdf">[lec03]</a> </td>
+    <td> <a href="#BGK13">RMT</a>,
+         <a href="#JYV15">JYV<sup>+</sup>15</a>
+    </td>
+    <td> <a href="#CFM17">dRMT</a>,
+         <a href="#XHK22">FlexCore</a>,
+         <a href="#YBK22">Trio</a>,
+         <a href="#WYG22">Menshen</a>,
+         <a href="#GKW20">Chipmunk</a>
+    </td>
+    <td> 
+         Project proposal is due 
+         
+    </td>
+  </tr>
+ 
+<!--- Week 4 --->
+
+  <tr>
+    <td> 4. "Smart" Network Interface Cards </td>
+    <td> Thu - Feb 1 <br/> Tue - Feb 6 </td>
+    <td> <a href="lectures/w24/lec04.pdf">[lec04]</a> </td>
+    <td> <a href="#FPM18">AccelNet</a>,
+         <a href="#LCS19">iPipe</a>
+    </td>
+    <td> <a href="#LTL16">ClickNP</a>,
+         <a href="#LPS20">PANIC</a>,
+         <a href="#QXH21">Clara</a> 
+    </td>
+    <td> </td>
+  </tr>
+ 
+<!--- Week 5 --->
+
+  <tr>
+    <td> 5. Programming Software Network Stacks </td>
+    <td> Thu - Feb 8 <br/> Tue - Feb 13 </td>
+    <td> <a href="lectures/w24/lec05.pdf">[lec05]</a> </td>
+    <td> <a href="#PPK15">OvS</a>,
+         <a href="#NCR18">CCP</a> </td>
+    <td> <a href="#TWA21">OvS'21</a>,
+         <a href="#HDB18">XDP</a>,
+         <a href="#XWW21">K2</a>,
+         <a href="#PHJ16">NetBricks</a>
+    </td>
+    <td> </td>
+  </tr>
+
+<!--- Week 6 - Part 1 --->
+
+  <tr>
+    <td> 6. Applications to Traditional Networks </td>
+    <td> Thu - Feb 15 </td>
+    <td> <a href="lectures/w24/lec06.pdf">[lec06]</a> </td>
+    <td> </td>
+    <td> </td>
+    <!--<td> <a href="https://github.com/minmit/p4-exercises">Assignment 1</a> is due </td>-->
+    <td> Assignment 1 is due </td>
+  </tr>
+
+<!--- Reading Week --->
+  <tr>
+    <td colspan=6 style="text-align: center; color:red; background-color:white"> <b> Reading Week </b> </td>
+  </tr>
+
+<!--- Week 6 - Part 2 --->
+
+  <tr>
+    <td> 6. Applications to Traditional Networks (Continued) </td>
+    <td> Tue - Feb 27 </td>
+    <td> </td>
+    <td> <a href="#VTV15">Fibbing</a>,
+         <a href="#BMM16">Propane</a>
+    </td>
+    <td> <a href="#DDH22">SwitchV</a>,
+         <a href="https://opennetworking.org/pins">PINS</a></td>
+    <td> </td>
+  </tr>
+
+<!--- Week 7 --->
+
+  <tr>
+    <td> 7. Network Verification </td>
+    <td> Thu - Feb 29 <br/> Tue - Mar 5 </td>
+    <td> <a href="lectures/w24/lec07.pdf">[lec07]</a> </td>
+    <td> <a href="#LHS18">p4v</a>,
+         <a href="#JBP19">RCDC</a>
+    </td>
+    <td> <a href="https://netverify.fun">Netverify website</a>,
+         <a href="https://courses.cs.washington.edu/courses/cse599n1/19au/index.shtml">Network verification course</a>,
+         <a href="#MKA11">Anteater</a>,
+         <a href="#KVM12">HSA</a>,
+         <a href="#KZZ13">Veriflow</a>,
+         <a href="#KBA20">GRooT</a>,
+         <a href="#TBA23">FPerf</a>
+    </td>
+    <!--<td><a href="https://github.com/minmit/verification_exercises">Assignment 2 (optional) is released</a> </td>-->
+    <td>Assignment 2 (optional) is released</td>
+  </tr>
+  
+<!--- Week 8 --->
+
+  <tr>
+    <td> 8. Flexible &amp; Fine-Grained Network Monitoring </td>
+    <td> Thu - Mar 7 <br/> Tue - Mar 12 </td>
+    <td> <a href="lectures/w24/lec08.pdf">[lec08]</a> </td>
+    <td> <a href="#GHC18">Sonata</a>,
+         <a href="#LMV16">UnivMon</a>
+    </td>
+    <td> <a href="#Y19">Top-down Telemetry</a>,
+         <a href="#CLB20">BeauCoup</a>,
+         <a href="#WCT22">SpiderMon</a></td>
+    <td> Project progress report is due</td>
+  </tr>
+
+<!--- Week 9 --->
+
+  <tr>
+    <td> 9. Applications to Transport, Network QoS, <br/> and In-Network Computing </td>
+    <td> Thu - Mar 14 <br/> Tue - Mar 19 <br/> Thu - Mar 21</td>
+    <td> <a href="lectures/w24/lec09.pdf">[lec09]</a> </td>
+    <td> <a href="#LML19">HPCC</a>,
+         <a href="#SLA18">AFQ</a>, <br/>
+         <a href="#LLM21">ATP</a>
+    </td>
+    <td> <a href="#GSZ22">BFC</a>,
+         <a href="#SSA16">PIFO</a>,
+         <a href="#SAS19">Loom</a>,
+         <a href="#CLK19">ConQuest</a>,
+         <a href="#AAG22">ABM</a>,
+         <a href="#PN19">INC</a>,
+         <a href="#JLZ17">NetCache</a>,
+         <a href="#JLZ18">NetChain</a>,
+         <a href="#YZB20">NetLock</a>,
+         <a href="#DBW20">P4xos</a>,
+         <a href="#">NetRPC</a>,
+         <a href="#KBW21">NCL</a>,
+         <a href="#NPA20">Bertha</a>
+         </td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td colspan=6 style="text-align: center; color:red; background-color:white"> <b> Project Presentations: Tue - Mar 26 &amp; Thu - Mar 28 <br/>
+    Final Project Report Due Mon - Apr 15</b> </td>
+  </tr>
+  
+</table>
+
+<br/>
+
+<h3 class="header" id="land-acknowledgement">Territorial Acknowledgement</h3>
+The University of Waterloo acknowledges that much of our work takes place on the traditional territory of the Neutral, Anishinaabeg and Haudenosaunee peoples. Our main campus is situated on the Haldimand Tract, the land granted to the Six Nations that includes six miles on each side of the Grand River. Our active work toward reconciliation takes place across our campuses through research, learning, teaching, and community building, and is centralized within the <a href="https://uwaterloo.ca/indigenous">Office of Indigenous Relations</a>.
+
+
+<h3 class="header" id="DEI-mental-health">Faculty of Math's Statement on Mental Health and Diversity</h3>
+
+<b> Mental Health Support: </b>The Faculty of Math encourages students to seek out mental health support if needed.
+<br/><br/>
+On-campus Resources:
+<ul>
+<li>Campus Wellness: <a href="https://uwaterloo.ca/campus-wellness/">https://uwaterloo.ca/campus-wellness/</a></li>
+<li>Counselling Services: <a href="mailto:counselling.services@uwaterloo.ca">counselling.services@uwaterloo.ca</a> 519-888-4567 ext. 32655 </li>
+<li>MATES: one-to-one peer support program offered by Waterloo Undergraduate Student Association (WUSA) and Counselling Services: <a href="mailto:mates@wusa.ca">mates@wusa.ca</a></li>
+<li>Health Services: located across the creek from the Student Life Centre, 519-888-4096.</li>
+</ul>
+
+Off-campus Resources:
+<ul>
+<li>Good2Talk (24/7): Free confidential help line for post-secondary students. Phone: 1-866-925-5454 (Ontario and Nova Scotia only)</li>
+<li>Here 24/7: Mental Health and Crisis Service Team. Phone: 1-844-437-3247 (Waterloo Region only)</li>
+<li>OK2BME: set of support services for lesbian, gay, bisexual, transgender, or questioning teens. Phone: 519-884-0000 extension 213 (Waterloo Region only)</li>
+<li>EMPOWER ME  1-833-628-5589 for Canada/USA. other countries see: <a href=http://studentcare.ca/rte/en/IHaveAPlan_WUSA_EmpowerMe_EmpowerMe>http://studentcare.ca/rte/en/IHaveAPlan_WUSA_EmpowerMe_EmpowerMe</a></li>
+<li>EMPOWER ME in China: <br/> China North  108007142831 <br/> China South  108001402851 </li>
+</ul>
+
+<b>Diversity:</b> 
+It is our intent that students from all diverse backgrounds and perspectives be well served by this course, and that students’ learning needs be addressed both in and out of class. We recognize the immense value of the diversity in identities, perspectives, and contributions that students bring, and the benefit it has on our educational environment. Your suggestions are encouraged and appreciated. Please let us know ways to improve the effectiveness of the course for you personally or for other students or student groups. In particular: 
+<ul>
+<li>We will gladly honour your request to address you by an alternate/preferred name or gender pronoun. Please advise us of this preference early in the term so we may make appropriate changes to our records.</li>
+<li>We will honour your religious holidays and celebrations. Please inform us of these at the start of the course.</li>
+<li>We will follow AccessAbility Services guidelines and protocols on how to best support students with different learning needs.</li>
+</ul> 
+
+<h3 class="header" id="students-with-disabitily">Note for Students with Disabilities</h3>
+
+<a href="https://uwaterloo.ca/accessability-services/">AccessAbility Services</a>, located in Needles Hall, Room 1401, collaborates with all academic departments to arrange appropriate accommodations for students with disabilities without compromising the academic integrity of the curriculum. If you require academic accommodations to lessen the impact of your disability, please register with AccessAbility Services at the beginning of each academic term.
+
+<h3 class="header" id="academic-integrity">University and Faculty of Math Policy on Academic Integrity</h3>
+
+<b>Academic Integrity:</b> In order to maintain a culture of academic integrity, members of the University of Waterloo community are expected to promote honesty, trust, fairness, respect and responsibility.
+[Check <a href="https://uwaterloo.ca/academic-integrity/">the Office of Academic Integrity</a> for more information.]
+
+<br/><br/>
+
+<b>Grievance:</b> A student who believes that a decision affecting some aspect of their university life has been unfair or unreasonable may have grounds for initiating a grievance. Please read <a href="https://uwaterloo.ca/secretariat/policies-procedures-guidelines/policy-70">Policy 70, Section 4</a>. When in doubt, please be certain to contact the department’s administrative assistant who will provide further assistance.
+
+<br/><br/>
+
+<b>Discipline:</b> A student is expected to know what constitutes academic integrity to avoid committing an academic offence, and to take responsibility for their actions. [Check <a href="https://uwaterloo.ca/academic-integrity/">the Office of Academic Integrity</a>.] A student who is unsure whether an action constitutes an offence, or who needs help in learning how to avoid offences (e.g., plagiarism, cheating) or about “rules” for group work/collaboration should seek guidance from the course instructor, academic advisor, or the undergraduate associate dean. For information on categories of offences and types of penalties, students should refer to <a href="https://uwaterloo.ca/secretariat/policies-procedures-guidelines/policy-71">Policy 71, Student Discipline</a>. For typical penalties, check <a href="https://uwaterloo.ca/secretariat/guidelines/guidelines-assessment-penalties">Guidelines for the Assessment of Penalties</a>.
+
+<br/><br/>
+
+<b>Avoiding Academic Offenses:</b> Most students are unaware of the line between acceptable and unacceptable academic behaviour, especially when discussing assignments with classmates and using the work of other students. For information on commonly misunderstood academic offenses and how to avoid them, students should refer to the <a href="https://uwaterloo.ca/academic-integrity/academic-misconduct">Office of Academic Integrity's site on Academic Misconduct</a> and the <a href="https://uwaterloo.ca/math/academic-matters/academic-integrity">Faculty of Mathematics' site on Academic Integrity</a>. 
+
+<br/><br/>
+
+<b>Appeals:</b> A decision made or penalty imposed under Policy 70, Student Petitions and Grievances (other than a petition) or Policy 71, Student Discipline may be appealed if there is a ground. A student who believes they have a ground for an appeal should refer to <a href="https://uwaterloo.ca/secretariat/policies-procedures-guidelines/policy-72">Policy 72 - Student Appeals</a>.
+ 
+
+<h3 class="header" id="references">References </h3>
+
+<table class="reference-table" width="100%"style="padding-left:20pt; border-spacing: 0 10px; ">
+
+<tbody>
+<!--
+<tr id=""> 
+<td class="ref"> </td>
+<td> . <a href="papers/"> </a>. .</td>
+</tr>
+-->
+
+<tr id="GHM05"> 
+<td class="ref"> 4D</td>
+<td> Albert Greenberg, Gisli Hjalmtysson, David A. Maltz, Andy Myers, Jennifer Rexford, Geoffrey Xie, Hong Yan, Jibin Zhan, Hui Zhang. <a href="papers/4d-05.pdf">A clean slate 4D approach to network control and management</a>. ACM SIGCOMM CCR 2005.</td>
+</tr>
+
+<tr id="FHF11"> 
+<td class="ref"> Frenetic </td>
+<td> Nate Foster, Rob Harrison, Michael J. Freedman, Christopher Monsanto, Jennifer Rexford, Alec Story, David Walker. <a href="papers/frenetic-11.pdf">Frenetic: A network programming language</a>. ACM ICFP 2011.</td>
+</tr>
+
+<tr id="MAB08"> 
+<td class="ref"> OpenFlow </td>
+<td> Nick McKeown, Tom Anderson, Hari Balakrishnan, Guru Parulkar, Larry Peterson, Jennifer Rexford, Scott Shenker, Jonathan Turner. <a href="papers/openflow-08.pdf">OpenFlow: enabling innovation in campus networks</a>. ACM SIGCOMM CCR 2008.</td>
+</tr>
+
+<tr id="AFG14"> 
+<td class="ref"> NetKAT</td>
+<td> Carolyn Jane Anderson, Nate Foster, Arjun Guha, Jean-Baptiste Jeannin, Dexter Kozen, Cole Schlesinger, David Walker. <a href="papers/netkat-14.pdf">NetKAT: Semantic foundations for networks</a>. ACM POPL 2014.</td>
+</tr>
+
+<tr id="BDG14"> 
+<td class="ref"> P4</td>
+<td> Pat Bosshart, Dan Daly, Glen Gibb, Martin Izzard, Nick McKeown, Jennifer Rexford, Cole Schlesinger et al. <a href="papers/p4-14.pdf">P4: Programming protocol-independent packet processors</a>. ACM SIGCOMM CCR 2014.</td>
+</tr>
+
+<tr id="BD17"> 
+<td class="ref"> P4<sub style="font-size:12px">16</sub></td>
+<td> Mihai Budiu, Chris Dodd. <a href="papers/p416-17.pdf">The P4<sub style="font-size: smaller">16</sub> programming language</a>. ACM SIGOPS OSR 2017.</td>
+</tr>
+
+<tr id="SCB16"> 
+<td class="ref"> Domino</td>
+<td> Anirudh Sivaraman, Alvin Cheung, Mihai Budiu, Changhoon Kim, Mohammad Alizadeh, Hari Balakrishnan, George Varghese, Nick McKeown, Steve Licking. <a href="papers/domino-16.pdf">Packet transactions: High-level programming for line-rate switches</a>. ACM SIGCOMM 2016.</td>
+</tr>
+
+<tr id="YSL20"> 
+<td class="ref"> Mantis</td>
+<td> Liangcheng Yu, John Sonchack, Vincent Liu. <a href="papers/mantis-20.pdf">Mantis: Reactive programmable switches</a>. ACM SIGCOMM 2020.</td>
+</tr>
+
+<tr id="SRK20"> 
+<td class="ref"> MicroP4</td>
+<td> Hardik Soni, Myriana Rifai, Praveen Kumar, Ryan Doenges, Nate Foster. <a href="papers/microp4-20.pdf">Composing dataplane programs with &#181;P4</a>. ACM SIGCOMM 2020.</td>
+</tr>
+
+<tr id="HLT22"> 
+<td class="ref"> P4All</td>
+<td> Mary Hogan, Shir Landau-Feibish, Mina Tahmasbi Arashloo, Jennifer Rexford, David Walker. <a href="papers/p4all-22.pdf">Modular switch programming under resource constraints</a>. USENIX NSDI 2022.</td>
+</tr>
+
+<tr id="BGK13"> 
+<td class="ref"> RMT</td>
+<td> Pat Bosshart, Glen Gibb, Hun-Seok Kim, George Varghese, Nick McKeown, Martin Izzard, Fernando Mujica, Mark Horowitz. <a href="papers/rmt-13.pdf">Forwarding metamorphosis: Fast programmable match-action processing in hardware for SDN</a>. ACM SIGCOMM 2013.</td>
+</tr>
+
+<tr id="JYV15"> 
+<td class="ref"> JYV<sup>+</sup>15</td>
+<td> Lavanya Jose, Lisa Yan, George Varghese, Nick McKeown. <a href="papers/compile-15.pdf">Compiling packet programs to reconfigurable switches</a>. USENIX NSDI 2015.</td>
+</tr>
+
+<tr id="CFM17"> 
+<td class="ref"> dRMT</td>
+<td> Sharad Chole, Andy Fingerhut, Sha Ma, Anirudh Sivaraman, Shay Vargaftik, Alon Berger, Gal Mendelson et al. <a href="papers/drmt-17.pdf">dRMT: Disaggregated programmable switching</a>. ACM SIGCOMM 2017.</td>
+</tr>
+
+<tr id="XHK22"> 
+<td class="ref"> FlexCore</td>
+<td> Jiarong Xing, Kuo-Feng Hsu, Matty Kadosh, Alan Lo, Yonatan Piasetzky, Arvind Krishnamurthy, Ang Chen. <a href="papers/runtime-22.pdf">Runtime programmable switches</a>. USENIX NSDI 2022.</td>
+</tr>
+
+<tr id="YBK22"> 
+<td class="ref"> Trio</td>
+<td> Mingran Yang, Alex Baban, Valery Kugel, Jeff Libby, Scott Mackie, Swamy Sadashivaiah Renu Kananda, Chang-Hong Wu, Manya Ghobadi. <a href="papers/trio-22.pdf">Using Trio: juniper networks' programmable chipset-for emerging in-network applications</a>. ACM SIGCOMM 2022.</td>
+</tr>
+
+<tr id="WYG22"> 
+<td class="ref"> Menshen</td>
+<td> Tao Wang, Xiangrui Yang, Gianni Antichi, Anirudh Sivaraman, and Aurojit Panda. <a href="papers/menshen-22.pdf">Isolation mechanisms for high-speed packet-processing pipelines</a>. USENIX NSDI 2022.</td>
+</tr>
+
+<tr id="GKW20"> 
+<td class="ref"> Chipmunk</td>
+<td> Xiangyu Gao, Taegyun Kim, Michael D. Wong, Divya Raghunathan, Aatish Kishan Varma, Pravein Govindan Kannan, Anirudh Sivaraman, Srinivas Narayana, and Aarti Gupta. <a href="papers/chipmunk-20.pdf">Switch code generation using program synthesis</a>. ACM SIGCOMM 2020.</td>
+</tr>
+
+
+<tr id="FPM18"> 
+<td class="ref"> AccelNet</td>
+<td>Daniel Firestone, Andrew Putnam, Sambhrama Mundkur, Derek Chiou, Alireza Dabagh, Mike Andrewartha, Hari Angepat et al. <a href="papers/accelnet-18.pdf">Azure Accelerated Networking: SmartNICs in the public cloud</a>. USENIX NSDI 2018.</td>
+</tr>
+
+<tr id="LCS19"> 
+<td class="ref"> iPipe</td>
+<td>Ming Liu, Tianyi Cui, Henry Schuh, Arvind Krishnamurthy, Simon Peter, and Karan Gupta. <a href="papers/ipipe-19.pdf">Offloading distributed applications onto SmartNics using iPipe</a>. ACM SIGCOMM 2019.</td>
+</tr>
+
+<tr id="LTL16"> 
+<td class="ref"> ClickNP </td>
+<td> Bojie Li, Kun Tan, Layong Luo, Yanqing Peng, Renqian Luo, Ningyi Xu, Yongqiang Xiong, Peng Cheng, and Enhong Chen. <a href="papers/clicknp-16.pdf">ClickNP: Highly flexible and high performance network processing with reconfigurable hardware</a>. ACM SIGCOMM 2016.</td>
+</tr>
+
+<tr id="LPS20"> 
+<td class="ref"> PANIC </td>
+<td> Jiaxin Lin, Kiran Patel, Brent E. Stephens, Anirudh Sivaraman, and Aditya Akella. <a href="papers/panic-20.pdf">PANIC: A high-performance programmable NIC for multi-tenant networks</a>. USENIX NSDI 2020.</td>
+</tr>
+
+<tr id="QXH21"> 
+<td class="ref"> Clara</td>
+<td>Yiming Qiu, Jiarong Xing, Kuo-Feng Hsu, Qiao Kang, Ming Liu, Srinivas Narayana, and Ang Chen. <a href="papers/clara-21.pdf">Automated SmartNIC Offloading Insights for Network Functions</a>. ACM SOSP 2021.</td>
+</tr>
+
+<tr id="PPK15"> 
+<td class="ref">OvS</td>
+<td>Ben Pfaff, Justin Pettit, Teemu Koponen, Ethan Jackson, Andy Zhou, Jarno Rajahalme, Jesse Gross et al. <a href="papers/ovs-15.pdf">The design and implementation of Open vSwitch</a>. USENIX NSDI 2015.</td>
+</tr>
+
+<tr id="NCR18"> 
+<td class="ref">CCP</td>
+<td>Akshay Narayan, Frank Cangialosi, Deepti Raghavan, Prateesh Goyal, Srinivas Narayana, Radhika Mittal, Mohammad Alizadeh, and Hari Balakrishnan. <a href="papers/ccp-18.pdf">Restructuring endpoint congestion control</a>. ACM SIGCOMM 2018.</td>
+</tr>
+
+<tr id="TWA21"> 
+<td class="ref"> OVS'21</td>
+<td>William Tu, Yi-Hung Wei, Gianni Antichi, and Ben Pfaff. <a href="papers/ovs-21.pdf">Revisiting the Open vSwitch dataplane ten years later</a>. ACM SIGCOMM 2021.</td>
+</tr>
+
+<tr id="HDB18"> 
+<td class="ref"> XDP</td>
+<td>Toke Høiland-Jørgensen, Jesper Dangaard Brouer, Daniel Borkmann, John Fastabend, Tom Herbert, David Ahern, and David Miller. <a href="papers/xdp-18.pdf">The eXpress Data Path: Fast programmable packet processing in the operating system kernel</a>. ACM CoNEXT 2018.</td>
+</tr>
+
+<tr id="XWW21"> 
+<td class="ref"> K2</td>
+<td>Qiongwen Xu, Michael D. Wong, Tanvi Wagle, Srinivas Narayana, and Anirudh Sivaraman. <a href="papers/k2-21.pdf">Synthesizing safe and efficient kernel extensions for packet processing</a>. ACM SIGCOMM 2021.</td>
+</tr>
+
+<tr id="PHJ16"> 
+<td class="ref"> NetBricks</td>
+<td>Aurojit Panda, Sangjin Han, Keon Jang, Melvin Walls, Sylvia Ratnasamy, and Scott Shenker. <a href="papers/netbricks-16.pdf">Netbricks: Taking the V out of NFV</a>. USENIX OSDI 2016.</td>
+</tr>
+
+<tr id="VTV15"> 
+<td class="ref">Fibbing</td>
+<td>Stefano Vissicchio, Olivier Tilmans, Laurent Vanbever, and Jennifer Rexford. <a href="papers/fibbing-15.pdf">Central control over distributed routing</a>. ACM SIGCOMM 2015.</td>
+</tr>
+
+<tr id="BMM16"> 
+<td class="ref">Propane </td>
+<td>Ryan Beckett, Ratul Mahajan, Todd Millstein, Jitendra Padhye, and David Walker. <a href="papers/propane-16.pdf">Don't mind the gap: Bridging network-wide objectives and device-level configurations</a>. ACM SIGCOMM 2016.</td>
+</tr>
+
+<tr id="DDH22"> 
+<td class="ref"> SwitcHV</td>
+<td>Kinan Dak Albab, Jonathan DiLorenzo, Stefan Heule, Ali Kheradmand, Steffen Smolka, Konstantin Weitz, Muhammad Timarzi, Jiaqi Gao, and Minlan Yu. <a href="papers/switchv-22.pdf">SwitchV: automated SDN switch validation with P4 models</a>. ACM SIGCOMM 2022.</td>
+</tr>
+
+<tr id="LHS18"> 
+<td class="ref">p4v</td>
+<td> Jed Liu, William Hallahan, Cole Schlesinger, Milad Sharif, Jeongkeun Lee, Robert Soulé, Han Wang, Călin Caşcaval, Nick McKeown, and Nate Foster. <a href="papers/p4v-18.pdf">P4v: Practical verification for programmable data planes</a>. ACM SIGCOMM 2018.</td>
+</tr>
+
+<tr id="JBP19"> 
+<td class="ref">RCDC</td>
+<td>Karthick Jayaraman, Nikolaj Bjørner, Jitu Padhye, Amar Agrawal, Ashish Bhargava, Paul-Andre C. Bissonnette, Shane Foster et al. <a href="papers/rcdc-19.pdf">Validating datacenters at scale</a>. ACM SIGCOMM 2019.</td>
+</tr>
+
+<tr id="MKA11"> 
+<td class="ref">Anteater</td>
+<td>Haohui Mai, Ahmed Khurshid, Rachit Agarwal, Matthew Caesar, P. Brighten Godfrey, and Samuel Talmadge King. <a href="papers/anteater-11.pdf">Debugging the data plane with Anteater</a>. ACM SIGCOMM 2011.</td>
+</tr>
+
+<tr id="KVM12"> 
+<td class="ref">HSA</td>
+<td>Peyman Kazemian, George Varghese, and Nick McKeown. <a href="papers/hsa-12.pdf">Header space analysis: Static checking for networks</a>. USENIX NSDI 2012.</td>
+</tr>
+
+<tr id="KZZ13"> 
+<td class="ref">Veriflow</td>
+<td>Ahmed Khurshid, Xuan Zou, Wenxuan Zhou, Matthew Caesar, and P. Brighten Godfrey. <a href="papers/veriflow-13.pdf">VeriFlow: Verifying network-wide invariants in real time</a>. USENIX NSDI 2013.</td>
+</tr>
+
+<tr id="KBA20"> 
+<td class="ref">GRooT</td>
+<td>Siva Kesava Reddy Kakarla, Ryan Beckett, Behnaz Arzani, Todd Millstein, and George Varghese. <a href="papers/groot-20.pdf">GRooT: Proactive verification of DNS configurations</a>. ACM SIGCOMM 2020.</td>
+</tr>
+
+<tr id="TBA23"> 
+<td class="ref">FPerf </td>
+<td>Mina Tahmasbi Arashloo, Ryan Beckett, Rachit Agarwal. <a href="papers/fperf-23.pdf">Formal methods for network performance analysis</a>. USENIX NSDI 2023.</td>
+</tr>
+
+<tr id="GHC18"> 
+<td class="ref">Sonata</td>
+<td>Arpit Gupta, Rob Harrison, Marco Canini, Nick Feamster, Jennifer Rexford, and Walter Willinger. <a href="papers/sonata-18.pdf">Sonata: Query-driven streaming network telemetry</a>. ACM SIGCOMM 2018.</td>
+</tr>
+
+<tr id="LMV16"> 
+<td class="ref">UnivMon</td>
+<td>Zaoxing Liu, Antonis Manousis, Gregory Vorsanger, Vyas Sekar, and Vladimir Braverman. <a href="papers/univmon-16.pdf">One sketch to rule them all: Rethinking network flow monitoring with UnivMon</a>. ACM SIGCOMM 2016.</td>
+</tr>
+
+<tr id="Y19"> 
+<td class="ref"> Top-Down Telemetry </td>
+<td> Minlan Yu. <a href="papers/telemetry-19.pdf">Network Telemetry: Towards A Top-Down Approach</a>. ACM SIGCOMM CCR 2019.</td>
+</tr>
+
+<tr id="CLB20"> 
+<td class="ref">BeauCoup</td>
+<td>Xiaoqi Chen, Shir Landau-Feibish, Mark Braverman, and Jennifer Rexford. <a href="papers/beaucoup-20.pdf">Beaucoup: Answering many network traffic queries, one memory update at a time</a>. ACM SIGCOMM 2020.</td>
+</tr>
+
+<tr id="WCT22"> 
+<td class="ref"> SpiderMon</td>
+<td>Weitao Wang, Xinyu Crystal Wu, Praveen Tammana, Ang Chen, and TS Eugene Ng. <a href="papers/spidermon-22.pdf">Closed-loop network performance monitoring and diagnosis with SpiderMon</a>. USENIX NSDI 2022.</td>
+</tr>
+
+
+<tr id="LML19"> 
+<td class="ref"> HPCC </td>
+<td>Yuliang Li, Rui Miao, Hongqiang Harry Liu, Yan Zhuang, Fei Feng, Lingbo Tang, Zheng Cao et al. <a href="papers/hpcc-19.pdf">HPCC: High Precision Congestion Control</a>. ACM SIGCOMM 2019.</td>
+</tr>
+
+<tr id="SLA18"> 
+<td class="ref"> AFQ</td>
+<td>Naveen Kr Sharma, Ming Liu, Kishore Atreya, and Arvind Krishnamurthy. <a href="papers/afq-18.pdf">Approximating fair queueing on reconfigurable switches</a>. USENIX NSDI 2018.</td>
+
+<tr id="GSZ22"> 
+<td class="ref">BFC</td>
+<td>Prateesh Goyal, Preey Shah, Naveen Kr Sharma, Mohammad Alizadeh, and Thomas E. Anderson. <a href="papers/bfc-22.pdf">Backpressure flow control</a>. USENIX NSDI 2022.</td>
+</tr>
+
+<tr id="SSA16"> 
+<td class="ref">PIFO</td>
+<td>Anirudh Sivaraman, Suvinay Subramanian, Mohammad Alizadeh, Sharad Chole, Shang-Tse Chuang, Anurag Agrawal, Hari Balakrishnan, Tom Edsall, Sachin Katti, and Nick McKeown. <a href="papers/pifo-16.pdf">Programmable packet scheduling at line rate</a>. ACM SIGCOMM 2016.</td>
+</tr>
+
+<tr id="SAS19"> 
+<td class="ref">Loom</td>
+<td>Brent E. Stephens, Aditya Akella, and Michael M. Swift. <a href="papers/loom-19.pdf">Loom: Flexible and Efficient NIC Packet Scheduling</a>. USENIX NSDI 2019.</td>
+</tr>
+
+<tr id="CLK19"> 
+<td class="ref">ConQuest</td>
+<td>Xiaoqi Chen, Shir Landau Feibish, Yaron Koral, Jennifer Rexford, Ori Rottenstreich, Steven A. Monetti, and Tzuu-Yi Wang. <a href="papers/conquest-19.pdf">Fine-grained queue measurement in the data plane</a>. ACM CoNEXT 2019.</td>
+</tr>
+
+<tr id="AAG22"> 
+<td class="ref">ABM</td>
+<td>Vamsi Addanki, Maria Apostolaki, Manya Ghobadi, Stefan Schmid, and Laurent Vanbever. <a href="papers/abm-22.pdf">ABM: active buffer management in datacenters</a>. ACM SIGCOMM 2022.</td>
+</tr>
+
+<tr id="LLM21"> 
+<td class="ref">ATP</td>
+<td>ChonLam Lao, Yanfang Le, Kshiteej Mahajan, Yixi Chen, Wenfei Wu, Aditya Akella, and Michael Swift. <a href="papers/atp-21.pdf">ATP: In-network aggregation for multi-tenant learning</a>. USENIX NSDI 2021.</td>
+</tr>
+
+<tr id="PN19"> 
+<td class="ref">INC</td>
+<td>Dan RK Ports, and Jacob Nelson. <a href="papers/inc-19.pdf">When should the network be the computer?</a>. ACM HotOS 2019.</td>
+</tr>
+
+<tr id="JLZ17"> 
+<td class="ref">NetCache</td>
+<td>Xin Jin, Xiaozhou Li, Haoyu Zhang, Robert Soulé, Jeongkeun Lee, Nate Foster, Changhoon Kim, and Ion Stoica. <a href="papers/netcache-17.pdf">Netcache: Balancing key-value stores with fast in-network caching</a>. ACM SOSP 2017.</td>
+</tr>
+
+<tr id="JLZ18"> 
+<td class="ref">NetChain</td>
+<td>Xin Jin, Xiaozhou Li, Haoyu Zhang, Nate Foster, Jeongkeun Lee, Robert Soulé, Changhoon Kim, and Ion Stoica. <a href="papers/netchain-18.pdf">Netchain: Scale-free sub-RTT coordination</a>. USENIX NSDI 2018.</td>
+</tr>
+
+<tr id="YZB20"> 
+<td class="ref">NetLock</td>
+<td>Zhuolong Yu, Yiwen Zhang, Vladimir Braverman, Mosharaf Chowdhury, and Xin Jin. <a href="papers/netlock-20.pdf">Netlock: Fast, centralized lock management using programmable switches.</a>. ACM SIGCOMM 2020.</td>
+</tr>
+
+<tr id="DBW20"> 
+<td class="ref">P4xos</td>
+<td>Huynh Tu Dang, Pietro Bressana, Han Wang, Ki Suh Lee, Noa Zilberman, Hakim Weatherspoon, Marco Canini, Fernando Pedone, and Robert Soulé. <a href="papers/p4xos-20.pdf">P4xos: Consensus as a network service</a>. IEEE/ACM Transactions on Networking.</td>
+</tr>
+
+<tr id="KBW21"> 
+<td class="ref">NCL</td>
+<td>George Karlos, Henri Bal, and Lin Wang. <a href="papers/ncl-21.pdf">Don't You Worry'Bout a Packet: Unified Programming for In-Network Computing</a>. ACM HotNets 2021.</td>
+</tr>
+
+<tr id="NPA20"> 
+<td class="ref">Bertha</td>
+<td>Akshay Narayan, Aurojit Panda, Mohammad Alizadeh, Hari Balakrishnan, Arvind Krishnamurthy, and Scott Shenker. <a href="papers/bertha-20.pdf">Bertha: Tunneling through the network API</a>. ACM HotNets 2020.</td>
+</tr>
+
+<tr id="HKM13"> 
+<td class="ref">SWAN</td>
+<td>Chi-Yao Hong, Srikanth Kandula, Ratul Mahajan, Ming Zhang, Vijay Gill, Mohan Nanduri, and Roger Wattenhofer. <a href="papers/swan-13.pdf">Achieving high utilization with software-driven WAN</a>. ACM SIGCOMM 2013.</td>
+</tr>
+
+<tr id="JKM13"> 
+<td class="ref">B4</td>
+<td>Sushant Jain, Alok Kumar, Subhasree Mandal, Joon Ong, Leon Poutievski, Arjun Singh, Subbaiah Venkata et al. <a href="papers/b4-13.pdf">B4: Experience with a globally-deployed software defined WAN</a>. ACM SIGCOMM 2013.</td>
+</tr>
+
+<tr id="JLW16"> 
+<td class="ref">OWAN</td>
+<td>Xin Jin, Yiran Li, Da Wei, Siming Li, Jie Gao, Lei Xu, Guangzhi Li, Wei Xu, and Jennifer Rexford. <a href="papers/owan-16.pdf">Optimizing bulk transfers with software-defined optical WAN</a>. ACM SIGCOMM 2016.</td>
+</tr>
+
+<tr id="PMO22"> 
+<td class="ref">Jupiter</td>
+<td>Leon Poutievski, Omid Mashayekhi, Joon Ong, Arjun Singh, Mukarram Tariq, Rui Wang, Jianan Zhang et al. <a href="papers/jupiter-22.pdf">Jupiter evolving: Transforming google's datacenter network via optical circuit switches and software-defined networking</a>. ACM SIGCOMM 2022.</td>
+</tr>
+
+</tr>
+
+
+</tbody></table>
+   </body>
+</html>
