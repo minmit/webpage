@@ -39,7 +39,7 @@ a:hover{
     font-weight:bold;
 }
 body {
-    background:bright-white;
+    background: #fbfbfa;
 	line-height: 1;
 }
 ol, ul {
@@ -82,10 +82,12 @@ General CSS
 ******************************************************************/
 									
 #content {
-//	width: 720px;
-	margin-left: 160px;
- 	margin-right: 160px;
+	max-width: 1020px;
+	margin-left: auto;
+	margin-right: auto;
 	padding-top: 40px;
+	padding-left: 28px;
+	padding-right: 28px;
 	z-index: 1;
 }
 p {
@@ -165,7 +167,7 @@ COLUMNS and FEATURES
 	width: 340px;
 }
 .two-third {
-	width: 650px;
+	width: 64%;
 }
 .one-third {
 	width: 220px;
@@ -182,8 +184,8 @@ COLUMNS and FEATURES
 	float: right;
 }
 .one-third-last {
-	width: 220px;
-	padding-right:60px;	
+	width: 30%;
+	padding-right:20px;
 	float: right;
 	padding-bottom:15px
 }
@@ -287,7 +289,7 @@ a:hover {
 	border-bottom: 1px;
 	border-style: solid;
 	border-color: #d6d6d6;
-	margin: 20px 5px 20px 5px;
+	margin: 24px 5px 24px 5px;
 }
 .blank-spacer {
 	width: 720px;
@@ -571,7 +573,7 @@ Home Page CSS
 .recent-item {
 	padding-right: 20px;
 	float: right;
-	width: 260px;
+	width: 100%;
 }
 .recent-item-last {
 	float: right;
@@ -579,7 +581,12 @@ Home Page CSS
 }
 
 .recent-item img{
-	align: middle;
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #d8d8d8;
 }
 .recent-summary p {
 	width: 250px;
@@ -1223,7 +1230,7 @@ This is the CSS for the social links
 #menus ul ul a{-moz-border-radius:0;-webkit-border-radius:0;border-radius:0;}
 #nav{z-index:5;position:relative;height:43px;margin:0 auto;padding-top:20px;clear:both;background:#454546;}
 
-#menus{width:700px;height:31px;margin:12px auto 0;padding-right:260px;font-size:14px;text-shadow:0 1px 0 #000;}
+#menus{max-width:1020px;height:auto;margin:12px auto 0;font-size:14px;text-shadow:0 1px 0 #000;}
 #menus a{border:1px solid #555;border-bottom:none;color:#abaaaa;display:block;line-height:30px;background:#333;padding:0 10px;}
 #menus ul{list-style:none;margin:0;}
 #menus li{float:left;position:relative;margin-right:8px;}
@@ -1292,8 +1299,100 @@ color:#444444;
     font-size:16px;
 }
 
+.news-list {
+    border-left: 3px solid #d6d6d6;
+    margin-top: 4px;
+    padding-left: 18px;
+    padding-right: 14px;
+    max-height: 430px;
+    overflow-y: auto;
+    scrollbar-color: #a8a8a8 #f0f0f0;
+    scrollbar-width: thin;
+}
+
+.news-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.news-list::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+.news-list::-webkit-scrollbar-thumb {
+    background: #a8a8a8;
+    border-radius: 8px;
+    border: 2px solid #f0f0f0;
+}
+
+.news-item {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    column-gap: 8px;
+    font-family: times, Times New Roman;
+    line-height: 1.55em;
+    color: #454544;
+    font-size: 13pt;
+    margin-bottom: 14px;
+}
+
+.news-date {
+    display: inline-block;
+    color: #334455;
+    font-weight: bold;
+}
+
+.news-text {
+    color: #454544;
+}
+
+@media screen and (max-width: 860px) {
+    #content {
+        padding-top: 28px;
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    #nav {
+        position: static;
+        height: auto;
+        padding-bottom: 12px;
+    }
+
+    #menus li {
+        margin-bottom: 8px;
+    }
+
+    .two-third,
+    .one-third-last {
+        float: none;
+        width: 100%;
+        padding-right: 0;
+    }
+
+    .recent-item {
+        float: none;
+        padding-right: 0;
+        margin-top: 10px;
+    }
+
+    .news-date {
+        display: block;
+        min-width: 0;
+        margin-bottom: 2px;
+    }
+
+    .news-item {
+        display: block;
+    }
+
+    .news-list {
+        max-height: 520px;
+        padding-right: 10px;
+    }
+}
+
 /*****************************************
- About Me Part 
+ About Me Part
  *****************************************/
 
 #about-me a{
