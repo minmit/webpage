@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS 456/656 Lecture 13: Managing scale through aggregation and hierarchies</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 18px; line-height: 1.5; color: #222; background: #fff; overflow-wrap: break-word; }
+a { color: #0d56a1; }
+code, .mono { font-family: Menlo, Consolas, monospace; font-size: 0.92em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* top bar */
+#bar { position: sticky; top: 0; z-index: 5; background: #97bfe8; padding: 8px 16px; }
+#bar .row { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+#bar .where { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#bar .pts { font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#bar .pts.bump { animation: bump 0.5s; }
+@keyframes bump { 40% { transform: scale(1.25); } }
+#track { max-width: 760px; margin: 6px auto 0; height: 6px; background: #ffffff88; border-radius: 3px; overflow: hidden; }
+#track div { height: 100%; width: 0; background: #0d56a1; transition: width 0.4s; }
+
+main { max-width: 760px; margin: 0 auto; padding: 8px 16px 160px; }
+h1 { font-size: 28px; line-height: 1.2; margin: 24px 0 4px; }
+.sub { color: #555; margin: 0 0 8px; }
+.step { padding: 28px 0 8px; border-top: 1px solid #ddd; margin-top: 28px; }
+.step h2 { font-size: 23px; line-height: 1.25; margin: 0 0 12px; }
+.step .half { font-size: 26px; font-weight: bold; margin: 0 0 22px; padding: 10px 14px; background: #97bfe8; }
+.step .chap { font-size: 14px; font-weight: bold; letter-spacing: 0.04em; text-transform: uppercase; color: #0d56a1; margin: 0 0 4px; }
+.step p { margin: 0 0 12px; }
+.step ul { margin: 0 0 12px; padding-left: 24px; }
+.step li { margin-bottom: 6px; }
+.step img { display: block; max-width: 100%; height: auto; margin: 6px 0 14px; }
+[hidden] { display: none !important; }
+
+/* your-turn boxes */
+.gate { border: 2px solid #0d56a1; border-radius: 6px; padding: 14px 16px; margin: 18px 0; background: #f5f9fe; }
+.gate.done { border-color: #1a7f37; background: #f4fbf5; }
+.gate .turn { font-size: 14px; font-weight: bold; letter-spacing: 0.04em; text-transform: uppercase; color: #0d56a1; margin: 0 0 6px; }
+.gate.done .turn { color: #1a7f37; }
+.gate .q { font-weight: bold; margin: 0 0 10px; }
+.gate textarea { display: block; width: 100%; min-height: 110px; padding: 8px 10px; border: 1px solid #999; border-radius: 4px; background: #fff; resize: vertical; }
+.gate .count { font-size: 14px; color: #666; margin: 4px 0 8px; }
+.gate input[type=text] { width: 180px; padding: 6px 10px; border: 1px solid #999; border-radius: 4px; background: #fff; }
+.gate .fb { margin: 10px 0 0; padding: 8px 12px; border-radius: 4px; background: #fff; border-left: 4px solid #999; }
+.gate .fb.ok { border-left-color: #1a7f37; }
+.gate .fb.no { border-left-color: #b00000; }
+.btn { display: inline-block; padding: 8px 18px; border: 0; border-radius: 4px; background: #0d56a1; color: #fff; cursor: pointer; }
+.btn:disabled { background: #a9b6c4; cursor: default; }
+.btn.quiet { background: #fff; color: #0d56a1; border: 1px solid #0d56a1; }
+.btn.next { font-size: 20px; padding: 10px 26px; margin: 10px 0 0; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opts button { text-align: left; padding: 9px 14px; border: 1px solid #999; border-radius: 4px; background: #fff; cursor: pointer; }
+.opts button:hover:not(:disabled) { border-color: #0d56a1; }
+.opts button.right { border: 2px solid #1a7f37; background: #d6f0dc; font-weight: bold; }
+.opts button.wrong { border-color: #b00000; background: #fbe9e9; color: #777; }
+.opts button:disabled { cursor: default; }
+.after { margin: 18px 0; }
+.after .said { font-size: 14px; font-weight: bold; letter-spacing: 0.04em; text-transform: uppercase; color: #0d56a1; margin: 0 0 6px; }
+.stars { color: #c9a227; font-size: 22px; letter-spacing: 2px; }
+.stars .off { color: #ccc; }
+.warn { background: #fbe9e9; border-left: 4px solid #b00000; padding: 8px 12px; margin: 12px 0; }
+
+/* tables and figures */
+table.ft { border-collapse: collapse; margin: 8px 0 14px; }
+table.ft th, table.ft td { border: 1px solid #999; padding: 4px 14px; text-align: left; vertical-align: top; }
+table.ft th { background: #eee; font-size: 16px; }
+table.ft td { font-family: Menlo, Consolas, monospace; font-size: 16px; }
+table.ft.words td { font-family: Arial, Helvetica, sans-serif; font-size: 17px; }
+table.ft caption { caption-side: top; text-align: left; font-weight: bold; padding-bottom: 4px; white-space: nowrap; }
+table.ft tr.pick { cursor: pointer; }
+table.ft tr.pick:hover td { background: #eaf2fb; }
+table.ft tr.hit td { background: #d6f0dc; }
+table.ft tr.miss td, table.ft td.miss { background: #fbe9e9; }
+.gate table.ft input[type=text] { width: 430px; max-width: 48vw; font-family: Menlo, Consolas, monospace; font-size: 16px; }
+table.ft select { padding: 3px 6px; border: 1px solid #999; border-radius: 4px; background: #fff; font-family: Arial, Helvetica, sans-serif; }
+.cols { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: flex-start; }
+svg.topo { display: block; width: 100%; height: auto; margin: 6px 0 10px; }
+svg.topo.top { margin: 6px 0 0; }
+.tgrid { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 0 14px; }
+.tcol { padding: 0 3% 0 12.5%; }
+.tbus { padding: 8px 0 0 16px; }
+.trow::after { content: ''; position: absolute; left: -18px; top: -30px; height: calc(50% + 31px); border-left: 2px solid #555; }
+.trow { position: relative; display: flex; align-items: center; gap: 8px; border: 2px solid; border-radius: 4px; padding: 3px 8px; margin: 0 0 8px; min-height: 36px; font-size: 16px; }
+.trow:last-child { margin-bottom: 0; }
+.trow::before { content: ''; position: absolute; left: -16px; top: 50%; width: 14px; border-top: 2px solid #555; }
+.trow.c0 { background: #d9e8f8; border-color: #1a5fb4; } .trow.c1 { background: #d6f0dc; border-color: #1a7f37; } .trow.c2 { background: #fde2c8; border-color: #c2650a; }
+.trow.hot { border-color: #b00000; border-width: 3px; }
+.trow.dup { border-color: #b00000; } .trow.dup select { border-color: #b00000; background: #fde8e8; }
+.trow select { min-width: 0; flex: 1; padding: 2px 2px; border: 1px solid #999; border-radius: 4px; background: #fff; font-size: 15px; }
+.tport { position: absolute; left: -27px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border: 2px solid #1a5fb4; border-radius: 50%; background: #fff; color: #1a5fb4; font-size: 12px; font-weight: bold; line-height: 16px; text-align: center; }
+@media (max-width: 620px) { .tcol { padding-right: 0; } .trow { font-size: 13px; gap: 4px; padding: 3px 4px; } .trow select { font-size: 13px; } }
+svg.topo text { font-family: Arial, Helvetica, sans-serif; }
+.g0 { fill: #d9e8f8; stroke: #1a5fb4; } .g1 { fill: #d6f0dc; stroke: #1a7f37; } .g2 { fill: #fde2c8; stroke: #c2650a; }
+.big { font-size: 22px; font-weight: bold; }
+.pkt { transition: transform 0.7s ease; }
+.hdrs { margin: 4px 0 10px; }
+.hrow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin: 0 0 6px; }
+.hname { width: 130px; font-weight: bold; align-self: center; }
+.hf { display: inline-block; border: 2px solid; border-radius: 4px; padding: 4px 10px; min-width: 150px; }
+.hf i { display: block; font-style: normal; font-size: 13px; color: #555; }
+.hf b { display: block; font-size: 17px; }
+.hf s { display: block; font-size: 13px; color: #8a6d00; text-decoration: none; min-height: 18px; }
+.hf.same { background: #d9e8f8; border-color: #1a5fb4; }
+.hf.chg { background: #fff6c9; border-color: #c9a227; }
+.hf.flash { animation: hflash 1.2s; }
+@keyframes hflash { 0%, 40% { background: #f7a23b; } 100% { background: #fff6c9; } }
+.hkey { font-size: 14px; }
+.hkey .hf { min-width: 0; padding: 1px 8px; }
+.hcap { min-height: 4.5em; }
+.meta { display: inline-block; border: 2px solid #555; border-radius: 4px; padding: 6px 12px; margin: 0 0 12px; background: #fff; font-size: 16px; }
+
+/* address strip */
+.strip { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; margin: 10px 0; }
+.strip button { padding: 4px 0 6px; border: 2px solid #999; border-radius: 4px; background: #fff; cursor: pointer; text-align: center; line-height: 1.15; }
+.strip button .a { display: block; font-size: 13px; color: #555; }
+.strip button .e { display: block; font-size: 15px; font-weight: bold; min-height: 20px; }
+.strip button.c0 { background: #d9e8f8; border-color: #1a5fb4; } .strip button.c1 { background: #d6f0dc; border-color: #1a7f37; } .strip button.c2 { background: #fde2c8; border-color: #c2650a; }
+.strip button.sel { outline: 3px solid #b00000; outline-offset: 1px; }
+@media (max-width: 620px) { .strip { grid-template-columns: repeat(8, 1fr); } }
+.score { margin: 6px 0; }
+.score b { font-size: 26px; }
+
+/* cutting up a block */
+.carve-bar { display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; margin: 12px 0 2px; }
+.carve-bar div { height: 34px; background: #eee; border: 1px solid #bbb; font-size: 13px; text-align: center; line-height: 32px; font-weight: bold; }
+.carve-bar div.clash { background: #b00000 !important; color: #fff; }
+.carve-ticks { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 13px; color: #555; margin-bottom: 12px; }
+.carve-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.carve-row .who { width: 250px; }
+.carve-row .who i { display: inline-block; width: 14px; height: 14px; border: 1px solid; vertical-align: -1px; margin-right: 6px; }
+.carve-row select { padding: 5px 8px; border: 1px solid #999; border-radius: 4px; background: #fff; }
+.chain { list-style: none; padding-left: 0 !important; }
+.chain li { border: 1px solid #999; border-radius: 4px; padding: 8px 12px; margin: 0 0 6px; }
+.chain li:nth-child(2) { margin-left: 20px; } .chain li:nth-child(3) { margin-left: 40px; } .chain li:nth-child(4) { margin-left: 60px; } .chain li:nth-child(5) { margin-left: 80px; }
+
+/* questions */
+#ask { position: fixed; right: 16px; bottom: 16px; z-index: 6; font-size: 18px; padding: 12px 18px; border-radius: 26px; box-shadow: 0 2px 8px #0005; }
+dialog { width: min(560px, calc(100vw - 32px)); border: 1px solid #777; border-radius: 6px; padding: 18px; }
+dialog::backdrop { background: #0006; }
+dialog h3 { margin: 0 0 8px; font-size: 20px; }
+dialog textarea { width: 100%; min-height: 120px; padding: 8px 10px; border: 1px solid #999; border-radius: 4px; }
+dialog select { max-width: 100%; padding: 5px 8px; margin: 4px 0 10px; border: 1px solid #999; border-radius: 4px; background: #fff; }
+dialog .acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+.qlist { list-style: none; padding: 0 !important; }
+.qlist li { border: 1px solid #bbb; border-radius: 4px; padding: 8px 12px; margin-bottom: 8px; }
+.qlist .about { font-size: 14px; color: #555; }
+.qlist button { float: right; border: 0; background: none; color: #b00000; cursor: pointer; font-size: 14px; }
+#export { width: 100%; min-height: 150px; padding: 8px 10px; border: 1px solid #999; border-radius: 4px; font-family: Menlo, Consolas, monospace; font-size: 14px; }
+footer { font-size: 14px; color: #666; margin-top: 40px; }
+footer button { border: 0; background: none; color: #0d56a1; cursor: pointer; padding: 0; font-size: 14px; text-decoration: underline; }
+
+/* review mode (index.html?review): edit the text in place and attach comments */
+#rvbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: #fff6c9; border-top: 2px solid #c9a227; padding: 8px 16px; font-size: 15px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#rvbar b { margin-right: 6px; }
+#rvbar button { padding: 5px 12px; border: 1px solid #8a6d00; border-radius: 4px; background: #fff; cursor: pointer; font-size: 15px; }
+#rvbar button:disabled { color: #999; border-color: #ccc; cursor: default; }
+#rvbar .n { margin-left: auto; color: #555; }
+.printing #bar, .printing #ask, .printing footer, .printing .btn.next { display: none !important; }
+@media print {
+  #bar, #ask, footer, #rvbar, #printnote, .btn.next, .rv-opts, .rv-note { display: none !important; }
+  main { max-width: none; padding: 0; }
+  body { font-size: 12pt; }
+  .gate, table, svg, img, .hdrs, .tgrid { break-inside: avoid; }
+  h2 { break-after: avoid; }
+  .step { border-top: 0; margin-top: 14pt; padding-top: 0; }
+  .gate { background: #fff; }
+}
+.rv [contenteditable]:hover { background: #fffbe6; }
+.rv [contenteditable]:focus { outline: 2px solid #c9a227; background: #fffbe6; }
+.rv .rv-cur { outline: 2px dashed #c9a227; outline-offset: 2px; }
+.rv .rv-edited { box-shadow: -4px 0 0 #1a7f37; }
+.rv-note { background: #fff6c9; border: 1px solid #c9a227; border-radius: 4px; padding: 8px 10px; margin: 6px 0 14px; font-size: 15px; }
+.rv-note .on { color: #555; margin-bottom: 4px; }
+.rv-note textarea { display: block; width: 100%; min-height: 60px; padding: 6px 8px; border: 1px solid #c9a227; border-radius: 4px; background: #fff; font-size: 16px; }
+.rv-note button { border: 0; background: none; color: #b00000; cursor: pointer; font-size: 14px; padding: 4px 0 0; }
+.rv-opts { border: 1px dashed #c9a227; border-radius: 4px; padding: 8px 10px; margin: 10px 0 0; font-size: 16px; background: #fff; }
+.rv-opts .lab { font-size: 13px; color: #8a6d00; text-transform: uppercase; letter-spacing: 0.04em; margin: 6px 0 0; }
+.rv-opts p { margin: 0 0 4px; }
+.rv-opts summary { cursor: pointer; font-size: 14px; color: #8a6d00; }
+.rv-opts[open] summary { margin-bottom: 6px; }
+#rvgen { width: 100%; min-height: 70px; padding: 6px 8px; border: 1px solid #c9a227; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div class="row">
+    <div class="where" id="where">CS 456/656 · Lecture 13</div>
+    <div class="pts" id="pts">0 points</div>
+  </div>
+  <div id="track"><div></div></div>
+</div>
+
+<main>
+<h1>Lecture 13: Managing scale through aggregation and hierarchies</h1>
+<p class="sub">CS 456/656, Fall 2026 · Part III: Scaling to the whole planet</p>
+
+<!-- ============================================================ -->
+<section class="step" id="how" data-chap="">
+  <h2>How this lecture works</h2>
+  <p>This page is designed to mimic, as much as possible, the interactive in-person experience.</p>
+  <ul>
+    <li>It goes one step at a time. In most steps, you first do something, e.g., write down what you think or solve a small puzzle, similar to our in-class discussions. After engaging with the question or puzzles, you can move on to the next step.</li>
+    <li>What you write in the boxes is not graded. The main goal is for you to pause and think, as you would in class. So, I encourage you to take your time with it, as if you are attending the lecture.</li>
+    <li>To make this a bit more fun, I have added a few features that let you collect points as you go. This will not be reported back to me and it will not impact your grade in any way. It is just for a bit of fun.</li>
+    <li>If you have a question, press <b>Ask a question</b> at the bottom right, at any point. Your questions are collected at the end, and I will answer them.</li>
+    <li>Your progress is saved in this browser, so you can stop and come back later.</li>
+    <li>This page works best on a laptop. On a phone, the figures are small.</li>
+    <li>The Check buttons in the exercises may be a bit flaky, since this page was put together a bit last minute. If you get an error message that does not make sense, please let me know.</li>
+  </ul>
+</section>
+
+<section class="step" id="where-we-were" data-chap="Recap">
+  <h2>Recap: IPv4 addresses as globally unique identifiers</h2>
+  <p>In our lectures, we have talked about how, when an application wants to send data, it tells the transport layer something like "I want to send data to process A at endpoint X". The transport layer then asks the network layer to "deliver this segment to endpoint X".</p>
+  <p>Inside the network, each switch on the path looks up endpoint X in its forwarding table, and sends the packet on the corresponding link.</p>
+  <p>For all of this to work, we need globally unique identifiers for each network endpoint. For a long time, IPv4 addresses have played that role. An IPv4 address is a 32-bit integer. We usually write it as four numbers separated by dots, one for each byte. For example, 2170660776 is written as <code>129.97.167.168</code>.</p>
+  <p>Each byte is between 0 and 255, so the addresses go from 0.0.0.0 to 255.255.255.255.</p>
+  <img src="lec12-network.png" alt="The network from lecture 12: five endpoints, each with an IPv4 address, connected through three devices, S1, S2 and S3. The forwarding tables of S2 and S1 each have an entry for 129.97.167.168.">
+  <p>In lecture 12, we talked about the Domain Name System (DNS), which helps endpoints find the IP address of the endpoints they want to communicate with. Today, we look at how these IP addresses are assigned and used for forwarding and routing in a large-scale network.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="scale" data-chap="The problem">
+  <h2>How can we handle billions of IP addresses?</h2>
+  <p>So far, we have used the generic name switch for network devices. In the Internet, the network devices that use IPv4 addresses to forward packets are specifically called <b>routers</b>. So, we will use that name for these specific network devices from now on.</p>
+  <p>Now, on to our discussion. IPv4 addresses are 32-bit unsigned integers. So, there are about 4.3 billion IPv4 addresses in total.</p>
+  <p>What does this mean for forwarding? Without any further strategy, a router ends up with a separate entry in its forwarding table for each endpoint. With billions of endpoints, that is billions of entries in every router. Even at only 5 bytes for an entry (4 for the address and 1 for the link), 4.3 billion entries take more than 20 GB. And the lookup has to be fast: on a 100 Gbps link, the router outputs a 1000 B packet every 80 ns (lecture 8). It is simply not practically feasible to have a memory of that size and search it that fast.</p>
+  <p>What about routing? In lecture 9, the routing algorithms in the routers' control planes exchange messages about the endpoints they can reach. In both link state and distance vector, the messages include per-endpoint information. With billions of endpoints, these messages will be very large.</p>
+  <p>So this, clearly, does not scale. Can we do better by being more careful about how we assign IPv4 addresses to endpoints?</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="net" data-chap="Grouping addresses">
+  <div class="gate" data-gate="table">
+    <p>Consider the following network. There are twelve endpoints, E1 to E12, connected through four routers, R1 to R4. Suppose these endpoints can take any IP addresses from 10.0.0.0 to 10.0.0.15 (16 addresses total).</p>
+    <p>R1's forwarding table has one entry for each endpoint, so 12 entries total, as shown below.</p>
+    <p>Suppose you can (1) change the assignment of IP addresses to endpoints, and (2) modify what is included in the "destination" column of the table, e.g., more than one IP address. How can you minimize the number of entries that need to be kept in R1's forwarding table?</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="group" data-chap="Grouping addresses">
+  <h2>Grouping addresses</h2>
+  <p>Here is the network from Exercise 1 again, with the IP addresses that the endpoints started with:</p>
+  <div data-fig="topo-initial"></div>
+  <p>R1 has only three links. So all it needs to know about a destination is which of the following three groups the destination belongs to: the endpoints reached through link 1, through link 2, or through link 3. One entry for each group is enough. That is three entries instead of twelve.</p>
+  <p>One way to define these "groups" is as a list of IP addresses:</p>
+  <table class="ft">
+    <tr><th>destination</th><th>send on</th></tr>
+    <tr><td>10.0.0.1, 10.0.0.4, 10.0.0.7, 10.0.0.11</td><td>link 1</td></tr>
+    <tr><td>10.0.0.0, 10.0.0.3, 10.0.0.9, 10.0.0.13</td><td>link 2</td></tr>
+    <tr><td>10.0.0.2, 10.0.0.5, 10.0.0.8, 10.0.0.12</td><td>link 3</td></tr></table>
+  <p>This still does not scale well though. If there were 1,000 endpoints behind R2, the first entry would have to list 1,000 addresses. Sure, the table would have fewer entries, but the router still has to store and search as many addresses as before.</p>
+  <p>Instead, suppose we had assigned IP addresses differently, for example:</p>
+  <div data-fig="topo-tidy"></div>
+  <p>In the above assignment, the IP addresses "behind" each router form a consecutive range. This way, we can <i>aggregate</i> all of them into a range, and rewrite the table the following way:</p>
+  <table class="ft">
+    <tr><th>destination</th><th>send on</th></tr>
+    <tr><td>10.0.0.0 to 10.0.0.3</td><td>link 1</td></tr>
+    <tr><td>10.0.0.4 to 10.0.0.7</td><td>link 2</td></tr>
+    <tr><td>10.0.0.8 to 10.0.0.11</td><td>link 3</td></tr></table>
+  <p>This is the basis of how the Internet handles routing and forwarding for billions of addresses. Endpoints that are close to each other in the network should get addresses that are close to each other, so we can aggregate their forwarding and routing decisions and refer to them in a compact way.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="bits" data-chap="IPv4 prefixes">
+  <h2>IPv4 Prefixes</h2>
+  <p>IPv4 prefixes are a way to compactly represent a range of IPv4 addresses.</p>
+  <p>Take the range 10.0.0.0 to 10.0.0.3 from the last table. Here are its four addresses in binary:</p>
+  <p class="mono">10.0.0.0 &nbsp; <b>00001010.00000000.00000000.000000</b>00<br>10.0.0.1 &nbsp; <b>00001010.00000000.00000000.000000</b>01<br>10.0.0.2 &nbsp; <b>00001010.00000000.00000000.000000</b>10<br>10.0.0.3 &nbsp; <b>00001010.00000000.00000000.000000</b>11</p>
+  <p>They all start with the same 30 bits, and the last two bits take every possible value (00, 01, 10, 11). So the range is exactly the set of all IPv4 addresses that have the same first 30 bits as 10.0.0.0, that is:</p>
+  <p class="mono"><b>00001010.00000000.00000000.000000</b>**</p>
+  <p>This set can be represented as an IP <b>prefix</b>, written as <code>10.0.0.0/30</code>.</p>
+  <p>In general, a prefix <code>a.b.c.d/n</code> represents all the IPv4 addresses whose first n bits are the same as the first n bits of a.b.c.d. The remaining 32 − n bits can be anything. For example, <code>129.97.0.0/16</code> is all the addresses whose first two bytes are 129.97. The shorter the prefix, the more addresses it represents: a /30 is 4 addresses, a /24 is 256, and a /32 is a single address. The addresses that a prefix represents are also called a block of addresses.</p>
+  <p>With prefixes, R1's forwarding table from Exercise 1 will look like this:</p>
+  <table class="ft">
+    <tr><th>destination</th><th>send on</th></tr>
+    <tr><td>10.0.0.0/30</td><td>link 1</td></tr>
+    <tr><td>10.0.0.4/30</td><td>link 2</td></tr>
+    <tr><td>10.0.0.8/30</td><td>link 3</td></tr>
+  </table>
+  <p>For each entry, R1 only compares the first 30 bits of the destination address. This is what real routers store in their forwarding tables: comparing the first n bits is much more efficient to do in hardware compared to the previous tables we have seen in this lecture, and a prefix is easy to divide into smaller prefixes, as we will see.</p>
+  <div class="gate" data-gate="fill" data-check="n65536" data-answer="2^16 = 65,536">
+    <p class="q">How many addresses are in 129.97.0.0/16?</p>
+  </div>
+  <div class="gate" data-gate="choice" data-answer="a" data-ok="Correct, /24 means the first three bytes should be 10.1.2, and the last byte can be anything.">
+    <p class="q">Which of these addresses is in 10.1.2.0/24?</p>
+    <div class="opts">
+      <button data-k="b" data-fb="/24 means the first three bytes should be 10.1.2. Here the third byte is 3.">10.1.3.2</button>
+      <button data-k="a">10.1.2.77</button>
+      <button data-k="c" data-fb="/24 means the first three bytes should be 10.1.2. Here the second byte is 2.">10.2.2.1</button>
+    </div>
+  </div>
+  <div class="gate" data-gate="choice" data-answer="y" data-ok="Correct, /23 means the first 23 bits should be the same as in 10.1.2.0, and the last 9 bits can be anything. The third byte is 2 (00000010) in the prefix and 3 (00000011) in the address. They differ only in their last bit, which is bit 24 of the address. So 10.1.2.0/23 is the 512 addresses from 10.1.2.0 to 10.1.3.255.">
+    <p class="q">Is 10.1.3.200 in 10.1.2.0/23?</p>
+    <div class="opts">
+      <button data-k="y">Yes</button>
+      <button data-k="n" data-fb="Write the third byte in binary: 2 is 00000010 and 3 is 00000011. Which of the 32 bits is the one where they differ?">No</button>
+    </div>
+  </div>
+<div class="gate" data-gate="choice" data-answer="32" data-ok="Correct, /32 means all 32 bits should be the same as in 129.97.167.168, so this prefix matches exactly that one address.">
+    <p class="q">Suppose an entry in the forwarding table needs to match exactly one IP address, 129.97.167.168. Which of the following prefixes can be used in that entry?</p>
+    <div class="opts">
+      <button data-k="24" data-fb="A /24 has 8 bits that can be anything, so it can match 256 addresses: 129.97.167.0 to 129.97.167.255.">129.97.167.0/24</button>
+      <button data-k="0" data-fb="/0 means no bit has to be the same, so this can match every IPv4 address.">129.97.167.168/0</button>
+      <button data-k="32">129.97.167.168/32</button>
+      <button data-k="1" data-fb="/1 means only the first bit has to be the same, so this can match half of all IPv4 addresses.">129.97.167.168/1</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="nets" data-chap="A network of networks">
+  <h2>The Internet is a network of networks</h2>
+  <p>So far, we have talked about "the network" as if it were one network, run by one operator. The Internet is not like that. It is tens of thousands of networks, each run by a different organization, that are connected to each other. IP addresses are assigned to these networks in blocks, and the blocks get smaller as we go from the middle of the Internet out towards its edge.</p>
+  <div data-fig="world"></div>
+  <p>In the middle are the largest Internet service providers (ISPs). There are only a handful of them. Their networks span countries and continents, and they are connected to each other. Together, they are the core of the Internet. ISPs X and Y in the above figure are examples of such ISPs.</p>
+  <p>They have the largest blocks. IANA (the Internet Assigned Numbers Authority) has authority over the whole 32-bit address space, and gives very large blocks to five regional registries. For Canada and the United States, the registry is ARIN. A registry gives blocks to ISPs in its corresponding region. For example, in the figure above, X has been assigned the block <code>10.0.0.0/8</code>, about 16 million addresses.</p>
+  <p>The Internet also has smaller ISPs, e.g., those that cover a smaller country or a region. There are thousands of these. Each one is a customer of one or more larger ISPs, and gets a part of their blocks. For example, in the figure, B and E are customers of X. X is in charge of giving them parts of its address space. In the example above, X gives <code>10.8.0.0/16</code> to B and <code>10.20.0.0/16</code> to E.</p>
+  <p>At the edge are the networks that connect to the endpoints, e.g., the network of a university, a hospital, a company, or your home. Each one gets its connection to the rest of the Internet and its address block from an ISP. In the example above, ISP B gives <code>10.8.0.0/22</code> to Lakeside College, and <code>10.8.4.0/22</code> to Maple Bank.</p>
+  <p>Inside a network at the edge, an organization can further divide its address block among the parts of its own network (e.g., buildings or departments). When an endpoint joins a network, it is assigned an IP address from the address block assigned to that network.</p>
+  <div class="gate" data-gate="carve">
+    <p>Suppose you run the network of Lakeside College. ISP B has given you <code>10.8.0.0/22</code>, which is the 1,024 addresses from 10.8.0.0 to 10.8.3.255. The campus has three buildings, each with its own router, connected to the main router M.</p>
+    <div data-fig="campus"></div>
+    <p class="q">How would you divide your IP address space between the three buildings, such that there is some left unused for future buildings?</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="tables" data-chap="A network of networks">
+  <h2>What do the forwarding tables look like?</h2>
+  <p>Take one path from the core to the edge in the figure: from large ISP X, through ISP B, to Lakeside College (in red below).</p>
+  <div data-fig="world-path"></div>
+  <p>Here is a closer look at that path, with one router in each network: C in the core, B in between, and M at the edge.</p>
+  <div data-fig="nets"></div>
+  <p>Suppose the college divided its block as follows: the Library has <code>10.8.0.0/23</code>, Engineering has <code>10.8.2.0/24</code>, and the Residence has <code>10.8.3.0/25</code>.</p>
+  <table class="ft">
+    <caption>M, the main router of Lakeside College (edge)</caption>
+    <tr><th>destination</th><th>send on</th></tr>
+    <tr><td>10.8.0.0/23</td><td>link 2 (Library)</td></tr>
+    <tr><td>10.8.2.0/24</td><td>link 3 (Engineering)</td></tr>
+    <tr><td>10.8.3.0/25</td><td>link 4 (Residence)</td></tr>
+    <tr><td>0.0.0.0/0</td><td>link 1 (ISP B)</td></tr>
+  </table>
+  <p>The last entry, <code>0.0.0.0/0</code>, has zero bits in its prefix, so every address matches it. It is called the default entry: everything that is not in the college goes to ISP B. Without it, M would need an entry for every other prefix in the Internet.</p>
+  <p>You may have noticed that it is possible for a packet to match two entries in this table. We will talk about this later in the lecture. For now, assume that if a packet's destination address matches anything other than the default entry, the router will use that entry for forwarding it.</p>
+  <table class="ft">
+    <caption>B, a router of ISP B (in between)</caption>
+    <tr><th>destination</th><th>send on</th></tr>
+    <tr><td>10.8.0.0/22</td><td>link 2 (Lakeside College)</td></tr>
+    <tr><td>10.8.4.0/22</td><td>link 3 (Maple Bank)</td></tr>
+    <tr><td>...</td><td>(its other customers)</td></tr>
+  </table>
+  <p>B does not know about the buildings of the college. It has one entry for each of its customers, including Lakeside College.</p>
+  <table class="ft">
+    <caption>C, a router of large ISP X (core)</caption>
+    <tr><th>destination</th><th>send on</th></tr>
+    <tr><td>10.8.0.0/16</td><td>link 1 (ISP B)</td></tr>
+    <tr><td>20.0.0.0/8</td><td>link 2 (large ISP Y)</td></tr>
+    <tr><td>...</td><td>(many more)</td></tr>
+  </table>
+  <p>C has one entry for ISP B and all of its customers, and one entry for everything in large ISP Y's block.</p>
+  <p>Note the pattern. The closer a router is to the endpoints, the longer the prefixes in its forwarding table. A packet for a laptop in the Library, 10.8.0.57, matches a /16 at C, a /22 at B, and a /23 at M.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="multi" data-chap="Longest prefix match">
+  <h2>What if a packet matches more than one entry?</h2>
+  <p>With prefixes, it is possible for a destination address to match more than one entry in a forwarding table.</p>
+  <p>Consider a university that has the address block <code>129.97.0.0/16</code>. Router R connects the university to its Internet provider through link 1. The campus network has routers of its own (P and Q in the figure), and R reaches it through link 2. The CS department uses a part of the block, <code>129.97.167.0/24</code>. Its router, D, is connected to the campus network (to Q), like the router of every other department. But the department sends and receives a lot of traffic, so D also has its own direct link to R, link 3.</p>
+  <div data-fig="lpm"></div>
+  <p>Here is what R's forwarding table will look like:</p>
+  <table class="ft">
+    <tr><th>destination</th><th>send on</th></tr>
+    <tr><td>129.97.0.0/16</td><td>link 2</td></tr>
+    <tr><td>129.97.167.0/24</td><td>link 3</td></tr>
+  </table>
+  <p>Packets destined to any IPv4 address in <code>129.97.167.0/24</code> will match both entries.</p>
+  <div class="gate" data-gate="think">
+    <p class="q">Suppose a packet with destination 129.97.167.168 arrives at R. Which entry should R use for forwarding it, and why?</p>
+  </div>
+  <div class="after">
+    <p>When a packet matches multiple entries, routers choose the one with the longest matching prefix. This is called <b>longest prefix match</b>. So, a packet for 129.97.167.168 will go on link 3.</p>
+    <p>Why longest prefix matching? A longer prefix is for a smaller group of addresses. So, of the entries that match, the one with the longest prefix is the most specific thing the router knows about this destination. Here, the /16 entry says how to reach the university's addresses in general. The /24 entry says how to reach the CS department in particular, and it is there because the direct link is a better path for the department than going through the campus network.</p>
+    <p>The /16 entry is still useful for the CS department. If link 3 fails, R removes the /24 entry. Packets for the CS department then match only the /16 entry, and reach D through the campus network (R, P, Q, D).</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+
+
+<section class="step" id="routing" data-chap="Routing">
+  <h2>Let's look at the problems we started with</h2>
+  <p>At the start, we saw two problems with having one forwarding table entry for each endpoint. Let's take a look at how hierarchical addressing helps with them.</p>
+  <p><b>Forwarding.</b> <i>"With billions of endpoints, that is billions of entries in every router."</i> With prefixes, a router needs one entry for each prefix, not for each endpoint.</p>
+  <p><b>Routing.</b> <i>"In both link state and distance vector, the messages include per-endpoint information. With billions of endpoints, these messages will be very large."</i> With prefixes, the exchanged messages are about prefixes (not necessarily individual endpoints) and they include per-prefix information. For example, here is what R2 tells R1 in distance vector routing, without and with prefixes:</p>
+  <div data-fig="route"></div>
+</section><!-- ============================================================ -->
+
+<section class="step" id="move" data-chap="What the hierarchy costs">
+  <h2>A hierarchical structure is not always the answer</h2>
+  <p>Assigning IP addresses along the hierarchy of the Internet is what lets us handle billions of addresses, as we just saw. But it comes with two issues.</p>
+  <p>Consider the network inside the Library of Lakeside College, which has the address block <code>10.8.0.0/23</code>. Suppose the Library's network is organized the same way as the rest of the Internet: the Library's router, L, has one link to each floor, and each floor has its own part of the Library's block. The first floor has <code>10.8.0.0/24</code> and the second floor has <code>10.8.1.0/24</code>.</p>
+  <p>Alice is a student at Lakeside College. Her laptop is connected to the network on the first floor, and its IP address is <code>10.8.0.57</code>. Then Alice walks up to the second floor, and connects her laptop to the network there.</p>
+  <div data-fig="moveip"></div>
+  <p>The first issue is mobility. The laptop's IP address has to change. Packets for <code>10.8.0.57</code> are sent to the first floor, because that address is in the first floor's block. On the second floor, the laptop needs an address from the second floor's block, e.g., <code>10.8.1.14</code>.</p>
+  <p>So the laptop does not have a fixed identity. Its identifier, the IP address, depends on where it is connected to the network. Anyone who knew its old address cannot reach it any more. For example, recall that a TCP connection is identified by the IP addresses and ports of its two endpoints (lecture 6), so if Alice moves mid-connection, the connection would break and would have to reset.</p>
+  <p>The second issue is bootstrapping. Joining the network cannot be "plug-and-play". Every time an endpoint connects somewhere, it has to be given an address that is right for that place by someone who knows the address block of that network and how IP addresses are assigned within that network.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="why-two" data-chap="MAC addresses">
+  <h2>In a local network, a flat structure works better</h2>
+  <p>We needed hierarchical addressing and structure to manage a network as large as the Internet. But at some point, locally, things look different.</p>
+  <p>Consider the network inside the Library. It has a few hundred devices, which connect, disconnect and move from desk to desk all day. A forwarding table with one entry for each active device is not too big. So, instead, one can use a flat structure (one entry for each device, with identifiers that do not depend on where the device is connected) that can alleviate the mobility and bootstrapping issues mentioned above. We will see how the Internet and its protocol stack handle that in the next lecture.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="step" id="end" data-chap="Done">
+  <h2>End of lecture 13</h2>
+  <p id="final"></p>
+  <h2 style="margin-top:28px">Your questions</h2>
+  <p id="qnone">You have not asked any questions. If something is still unclear, press <b>Ask a question</b> now.</p>
+  <ul class="qlist" id="qlist"></ul>
+  <div id="sendbox" hidden>
+    <p id="sendhow"></p>
+    <textarea autocomplete="off" id="export" readonly></textarea>
+    <p><button class="btn" id="email">Email my questions</button> <button class="btn quiet" id="copy">Copy my questions</button> <button class="btn" id="send" hidden>Send my questions</button> <span id="sent"></span></p>
+  </div>
+</section>
+
+<footer>
+  <p><button id="topdf">Save the lecture so far as a PDF</button> (everything up to where you are now, with what you have written, in your browser's print window)</p>
+  <button id="reset">Start this lecture over</button> (this erases your answers, points and questions in this browser)
+</footer>
+</main>
+
+<button class="btn" id="ask">Ask a question</button>
+<dialog id="askdlg">
+  <h3>Ask a question</h3>
+  <label for="askabout">About:</label><br>
+  <select autocomplete="off" id="askabout"></select>
+  <textarea autocomplete="off" id="asktext" placeholder="Type your question here."></textarea>
+  <div class="acts">
+    <button class="btn quiet" id="askcancel">Cancel</button>
+    <button class="btn" id="asksave" disabled>Save question</button>
+  </div>
+</dialog>
+
+<script>
+(function () {
+'use strict';
+
+// ---------------------------------------------------------------- settings
+var CONFIG = {
+  // Where students' questions go at the end. If submitUrl is empty, the last step only offers
+  // "Copy my questions"; postInstruction (if any) is shown above the box.
+  submitUrl: '',          // a URL that accepts a POST with a JSON body {lecture, questions:[{about, text}]}
+  postInstruction: '',    // e.g. 'Copy your questions and post them in ...'
+  emailTo: 'mina.arashloo@uwaterloo.ca', emailSubject: '[CS 456 - Lec 13] Questions',   // 'Email my questions' opens the student's email program
+  thinkMin: 20            // characters a student has to write before a "think" box lets them go on
+};
+var REVIEW = /[?&]review\b/.test(location.search);   // index.html?review: everything open, text editable, comments
+var PRINT = /[?&]print\b/.test(location.search);     // index.html?print: the lecture up to where the student is, then the browser's print dialog (save as PDF)
+var PRINTALL = /[?&]print=all\b/.test(location.search);   // index.html?print=all: every section open (from review mode)
+var OPEN = REVIEW || PRINTALL;
+var KEY = 'cs456-f26-lec13-v2' + (REVIEW ? '-reviewrun' : '');
+
+// ---------------------------------------------------------------- state
+var S = { g: {}, cur: 0, pts: 0, q: [] };
+try { var saved = JSON.parse(localStorage.getItem(KEY)); if (saved && saved.g) S = saved; } catch (e) {}
+var canSave = true;
+function save() { if (PRINT) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { canSave = false; } if (!canSave) warnNoSave(); }
+function warnNoSave() {
+  if (OPEN || document.getElementById('nosave')) return;
+  var w = document.createElement('p'); w.id = 'nosave'; w.className = 'warn';
+  w.textContent = 'This browser is not saving your progress (for example, in a private window). You can still do the lecture, but keep this tab open until you are done.';
+  var m = document.querySelector('main'); m.insertBefore(w, m.firstChild);
+}
+try { localStorage.setItem(KEY + '-test', '1'); localStorage.removeItem(KEY + '-test'); } catch (e) { canSave = false; }
+
+var $ = function (s, el) { return (el || document).querySelector(s); };
+var $$ = function (s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); };
+function h(tag, attrs, html) { var e = document.createElement(tag); if (/^(input|select|textarea)$/.test(tag)) e.setAttribute('autocomplete', 'off'); for (var k in attrs || {}) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function stars(n) { return ''; }   // points only
+
+var steps = $$('.step');
+
+// Review keys: every piece of text written in the HTML above gets a key (step id + its position),
+// before anything is generated by the code below.
+var ORIG = {};
+steps.forEach(function (st) {
+  var n = 0;
+  $$('h2, p, li, td, th, caption', st).forEach(function (el) { if (!el.id) { el.dataset.rk = st.id + ':' + (n++); ORIG[el.dataset.rk] = el.innerHTML; } });
+  $$('.gate, [data-fig], img', st).forEach(function (el, k) { el.dataset.rk = st.id + ':' + (el.classList.contains('gate') ? 'box' : 'figure') + k; });
+});
+
+// ---------------------------------------------------------------- points and progress
+function award(gid, pts) {            // a box keeps the most points it has earned
+  var rec = S.g[gid] || (S.g[gid] = {});
+  var old = rec.pts || 0;
+  if (pts > old) { rec.pts = pts; S.pts += pts - old; var p = $('#pts'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
+  save(); paintBar();
+}
+function paintBar() {
+  $('#pts').textContent = S.pts + (S.pts === 1 ? ' point' : ' points');
+  $('#track div').style.width = Math.round(100 * S.cur / (steps.length - 1)) + '%';
+  var st = steps[S.cur];
+  $('#where').textContent = ['Lecture 13', st.dataset.halfname, st.dataset.chap].filter(Boolean).join(' · ');
+  var f = $('#final'); if (f) f.innerHTML = 'You finished with <b>' + S.pts + ' points</b>.';
+}
+
+// ---------------------------------------------------------------- the small network (part I)
+var NAMES = [], GROUP = {};
+for (var en = 1; en <= 12; en++) { NAMES.push('E' + en); GROUP['E' + en] = Math.floor((en - 1) / 4); }   // E1-E4 behind R2, E5-E8 behind R3, E9-E12 behind R4
+// address -> endpoint, in the order the endpoints showed up
+var INITIAL = ['E5', 'E1', 'E9', 'E6', 'E2', 'E10', null, 'E3', 'E11', 'E7', null, 'E4', 'E12', 'E8', null, null];
+var TIDY = NAMES.concat([null, null, null, null]);
+function bin4(n) { return ('000' + n.toString(2)).slice(-4); }
+
+function ipOf(a) { return '10.0.0.' + a; }
+// a link number in a circle, drawn where the link meets the router it belongs to (as in lecture 12)
+function port(x, y, n) { return '<circle cx="' + x + '" cy="' + y + '" r="11" fill="#fff" stroke="#1a5fb4" stroke-width="2"/><text x="' + x + '" y="' + (y + 5) + '" font-size="14" font-weight="bold" fill="#1a5fb4" text-anchor="middle">' + n + '</text>'; }
+// opts: focus (2 = show R2's link numbers), moved (endpoint -> group it is drawn under)
+// opts: focus (2 = show R2's link numbers), moved (endpoint -> group it is drawn under), pick (each endpoint gets a menu of the 16 addresses)
+function topo(strip, opts) {
+  opts = opts || {};
+  var addr = opts.addr || {}; if (!opts.addr) strip.forEach(function (e, a) { if (e) addr[e] = a; });
+  var under = [[], [], []];
+  NAMES.forEach(function (n) { var g = (opts.moved && n in opts.moved) ? opts.moved[n] : GROUP[n]; under[g].push(n); });
+  var cx = [120, 360, 600], s = '';
+  s += '<svg class="topo top" viewBox="0 0 720 132" role="img" aria-label="R1 at the top. Its links 1, 2 and 3 go to R2, R3 and R4. The endpoints of each of those are listed below it with their addresses.">';
+  for (var g = 0; g < 3; g++) {
+    s += '<line x1="360" y1="44" x2="' + cx[g] + '" y2="92" stroke="#555" stroke-width="3"/>';
+    s += '<polyline points="' + (cx[g] - 55) + ',109 ' + (cx[g] - 89) + ',109 ' + (cx[g] - 89) + ',132" fill="none" stroke="#555" stroke-width="2"/>';
+    var f = opts.focus === g + 2;
+    s += '<rect x="' + (cx[g] - 55) + '" y="92" width="110" height="34" rx="5" fill="#fff" stroke="' + (f ? '#b00000' : '#333') + '" stroke-width="' + (f ? 4 : 2.5) + '"/>';
+    s += '<text x="' + cx[g] + '" y="115" font-size="18" text-anchor="middle" fill="#222">R' + (g + 2) + '</text>';
+    s += port(360 + (cx[g] - 360) * 0.3, g === 1 ? 66 : 58, g + 1);
+  }
+  if (opts.focus === 2) s += port(192, 78, 5);
+  s += '<rect x="305" y="10" width="110" height="34" rx="5" fill="#fff" stroke="#333" stroke-width="2.5"/>';
+  s += '<text x="360" y="33" font-size="18" text-anchor="middle" fill="#222">R1</text>';
+  s += '</svg><div class="tgrid">';
+  for (g = 0; g < 3; g++) {
+    s += '<div class="tcol"><div class="tbus">';
+    under[g].forEach(function (name, i) {
+      var hot = opts.moved && name in opts.moved, a = addr[name];
+      s += '<div class="trow c' + GROUP[name] + (hot ? ' hot' : '') + '">';
+      if (opts.focus === 2 && g === 0) s += '<span class="tport">' + (i + 1) + '</span>';
+      s += '<b>' + name + '</b>';
+      if (opts.pick) {
+        s += '<select autocomplete="off" data-e="' + name + '" aria-label="IP address of ' + name + '">';
+        for (var x = 0; x < 16; x++) s += '<option value="' + x + '"' + (x === a ? ' selected' : '') + '>' + ipOf(x) + '</option>';
+        s += '</select>';
+      } else s += '<span>' + (a == null ? '' : ipOf(a)) + '</span>';
+      s += '</div>';
+    });
+    s += '</div></div>';
+  }
+  return s + '</div>';
+}
+// R1's table when one entry can cover a range: a new entry starts whenever the link changes
+function runs(strip) {
+  var out = [], cur = null;
+  strip.forEach(function (e, a) {
+    if (!e) return;
+    if (cur && cur.link === GROUP[e]) cur.to = a; else { cur = { from: a, to: a, link: GROUP[e] }; out.push(cur); }
+  });
+  return out;
+}
+function runTable(strip, each) {
+  var rows = each
+    ? strip.map(function (e, a) { return e ? '<tr><td>' + a + '</td><td>link ' + (GROUP[e] + 1) + '</td></tr>' : ''; }).join('')
+    : runs(strip).map(function (r) { return '<tr><td>' + (r.from === r.to ? r.from : r.from + ' to ' + r.to) + '</td><td>link ' + (r.link + 1) + '</td></tr>'; }).join('');
+  return '<table class="ft"><caption>R1\'s forwarding table</caption><tr><th>destination</th><th>send on</th></tr>' + rows + '</table>';
+}
+
+// ---------------------------------------------------------------- figures for part II
+function box(x, y, w, label, cls, hot) {
+  return '<rect x="' + (x - w / 2) + '" y="' + y + '" width="' + w + '" height="36" rx="5" ' + (cls ? 'class="' + cls + '"' : 'fill="#fff" stroke="#333"') + ' stroke-width="' + (hot ? 4.5 : 2.5) + '"' + (hot ? ' style="stroke:#b00000"' : '') + '/>' +
+    '<text x="' + x + '" y="' + (y + 24) + '" font-size="17" text-anchor="middle" fill="#222">' + label + '</text>';
+}
+function figLib() {
+  var s = '<svg class="topo" viewBox="0 0 720 300" role="img" aria-label="The Library\'s network: a router at the top, connected to the rest of the campus and to an L2 switch on the switch\'s link 5. The L2 switch connects a laptop on link 1, a printer on link 2, a desktop on link 3 and a Wi-Fi access point on link 4.">';
+  s += '<rect x="60" y="92" width="600" height="196" rx="14" fill="#eef5fc" stroke="#97bfe8" stroke-width="2"/>';
+  s += '<text x="76" y="116" font-size="16" fill="#0d56a1">the Library\'s network: 10.8.0.0/23</text>';
+  s += '<line x1="360" y1="20" x2="360" y2="60" stroke="#555" stroke-width="3"/><text x="372" y="34" font-size="16" fill="#333">to the rest of the campus</text>';
+  s += '<line x1="360" y1="96" x2="360" y2="150" stroke="#555" stroke-width="3"/>';
+  [150, 290, 430, 570].forEach(function (x, i) { s += '<line x1="360" y1="186" x2="' + x + '" y2="232" stroke="#555" stroke-width="2"/>' + port(360 + (x - 360) * 0.45, 186 + 46 * 0.45, i + 1); });
+  s += box(360, 60, 120, 'router', 'g2') + box(360, 150, 130, 'L2 switch', 'g1') + port(360, 128, 5);
+  s += box(150, 232, 110, 'laptop') + box(290, 232, 110, 'printer') + box(430, 232, 110, 'desktop') + box(570, 232, 110, 'Wi-Fi');
+  s += '<text x="432" y="84" font-size="15" fill="#333">10.8.0.1</text>';
+  return s + '</svg>';
+}
+// the Internet from the middle out; path: mark the path from X through B to Lakeside College
+function figWorld(path) {
+  function blk(x, y, w, hh, l1, l2, fill, fs, hot) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + hh + '" rx="8" fill="' + fill + '" stroke="' + (hot ? '#b00000' : '#1a5fb4') + '" stroke-width="' + (hot ? 4 : 2) + '"/><text x="' + (x + w / 2) + '" y="' + (y + hh / 2 - 3) + '" font-size="' + fs + '" text-anchor="middle" fill="#222">' + l1 + '</text><text x="' + (x + w / 2) + '" y="' + (y + hh / 2 + fs + 1) + '" font-size="' + fs + '" font-weight="bold" text-anchor="middle" fill="#222">' + l2 + '</text>'; }
+  function ln(x1, y1, x2, y2, hot) { return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + (hot ? '#b00000' : '#555') + '" stroke-width="' + (hot ? 5 : 2.5) + '"/>'; }
+  var s = '<svg class="topo" viewBox="0 0 720 430" role="img" aria-label="In the middle, two large ISPs connected to each other: X with 10.0.0.0/8 and Y with 20.0.0.0/8. Around them, smaller ISPs: B with 10.8.0.0/16 and E with 10.20.0.0/16 are customers of X; F with 20.5.0.0/16 and G with 20.9.0.0/16 are customers of Y. At the edge: Lakeside College with 10.8.0.0/22 and Maple Bank with 10.8.4.0/22 behind B; Corner Bookstore and Sam\'s home behind E; City Hospital and Hilltop University behind F; Polar Airlines and Priya\'s home behind G.' + (path ? ' The path from X through B to Lakeside College is marked in red.' : '') + '">';
+  s += ln(345, 215, 375, 215) + ln(215, 195, 178, 123, path) + ln(215, 235, 178, 307) + ln(505, 195, 542, 123) + ln(505, 235, 542, 307);
+  s += ln(100, 96, 65, 58, path) + ln(140, 96, 195, 58) + ln(100, 334, 65, 372) + ln(140, 334, 195, 372) + ln(580, 96, 525, 58) + ln(620, 96, 655, 58) + ln(580, 334, 525, 372) + ln(620, 334, 655, 372);
+  s += blk(215, 160, 130, 110, 'large ISP X', '10.0.0.0/8', '#b9d2ee', 17, path) + blk(375, 160, 130, 110, 'large ISP Y', '20.0.0.0/8', '#b9d2ee', 17);
+  s += blk(60, 96, 118, 54, 'ISP B', '10.8.0.0/16', '#dbe8f7', 15.5, path) + blk(60, 280, 118, 54, 'ISP E', '10.20.0.0/16', '#dbe8f7', 15.5) + blk(542, 96, 118, 54, 'ISP F', '20.5.0.0/16', '#dbe8f7', 15.5) + blk(542, 280, 118, 54, 'ISP G', '20.9.0.0/16', '#dbe8f7', 15.5);
+  s += blk(2, 8, 126, 50, 'Lakeside College', '10.8.0.0/22', '#fff', 14.5, path) + blk(132, 8, 126, 50, 'Maple Bank', '10.8.4.0/22', '#fff', 14.5) + blk(2, 372, 126, 50, 'Corner Bookstore', '10.20.3.0/24', '#fff', 14.5) + blk(132, 372, 126, 50, 'Sam\'s home', '10.20.9.16/29', '#fff', 14.5);
+  s += blk(462, 8, 126, 50, 'City Hospital', '20.5.16.0/20', '#fff', 14.5) + blk(592, 8, 126, 50, 'Hilltop University', '20.5.32.0/19', '#fff', 14.5) + blk(462, 372, 126, 50, 'Polar Airlines', '20.9.2.0/23', '#fff', 14.5) + blk(592, 372, 126, 50, 'Priya\'s home', '20.9.40.8/29', '#fff', 14.5);
+  return s + '</svg>';
+}
+// a closer look at that path, in the same colours: X (with C) and Y, ISP B (with B), Lakeside College (with M and its buildings), Maple Bank
+function figNets() {
+  function reg(x, y, w, hh, fill, l1, l2) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + hh + '" rx="10" fill="' + fill + '" stroke="#1a5fb4" stroke-width="2"/><text x="' + (x + 10) + '" y="' + (y + 19) + '" font-size="14" fill="#222">' + l1 + '</text>' + (l2 ? '<text x="' + (x + 10) + '" y="' + (y + 36) + '" font-size="14" font-weight="bold" fill="#222">' + l2 + '</text>' : ''); }
+  function small(x, y, w, label) { return '<rect x="' + (x - w / 2) + '" y="' + y + '" width="' + w + '" height="26" rx="4" fill="#f3f3f3" stroke="#555" stroke-width="1.5"/><text x="' + x + '" y="' + (y + 18) + '" font-size="13" text-anchor="middle" fill="#222">' + label + '</text>'; }
+  var s = '<svg class="topo" viewBox="0 0 720 384" role="img" aria-label="Large ISP X, 10.0.0.0/8, with router C. Link 2 of C goes to large ISP Y, 20.0.0.0/8. Link 1 of C goes down to router B of ISP B, 10.8.0.0/16. Link 2 of B goes to M, the main router of Lakeside College, 10.8.0.0/22, which connects the Library, Engineering and the Residence. Link 3 of B goes to Maple Bank, 10.8.4.0/22.">';
+  s += reg(190, 6, 240, 72, '#b9d2ee', 'large ISP X', '10.0.0.0/8') + reg(480, 6, 232, 72, '#b9d2ee', 'large ISP Y', '20.0.0.0/8') + reg(70, 122, 300, 72, '#dbe8f7', 'ISP B', '10.8.0.0/16');
+  s += reg(8, 246, 284, 130, '#fff', 'Lakeside College', '10.8.0.0/22') + reg(310, 246, 150, 62, '#fff', 'Maple Bank', '10.8.4.0/22');
+  s += '<line x1="330" y1="56" x2="640" y2="56" stroke="#555" stroke-width="3"/><line x1="330" y1="56" x2="290" y2="164" stroke="#555" stroke-width="3"/>';
+  s += '<line x1="290" y1="164" x2="232" y2="290" stroke="#555" stroke-width="3"/><line x1="290" y1="164" x2="385" y2="246" stroke="#555" stroke-width="3"/>';
+  s += '<line x1="232" y1="300" x2="54" y2="342" stroke="#555" stroke-width="2"/><line x1="232" y1="300" x2="150" y2="342" stroke="#555" stroke-width="2"/><line x1="232" y1="300" x2="244" y2="342" stroke="#555" stroke-width="2"/>';
+  s += small(54, 342, 72, 'Library') + small(150, 342, 94, 'Engineering') + small(244, 342, 80, 'Residence');
+  s += box(330, 38, 56, 'C', 'g2') + box(640, 38, 56, '', 'g2') + box(290, 146, 56, 'B', 'g2') + box(232, 282, 56, 'M', 'g2');
+  s += port(318, 92, 1) + port(378, 56, 2) + port(304, 126, 1) + port(271, 206, 2) + port(332, 200, 3) + port(244, 262, 1);
+  return s + '</svg>';
+}
+// the campus of the exercise: M and the three buildings
+function figCampus() {
+  var s = '<svg class="topo" viewBox="0 0 720 150" role="img" aria-label="Lakeside College: the main router M is connected to ISP B on link 1, to the Library, with 400 endpoints, on link 2, to Engineering, with 200 endpoints, on link 3, and to the Residence, with 100 endpoints, on link 4.">';
+  s += '<line x1="360" y1="6" x2="360" y2="36" stroke="#555" stroke-width="3"/><text x="386" y="20" font-size="14" fill="#333">to ISP B</text>';
+  [[150, 'Library', '400 endpoints'], [360, 'Engineering', '200 endpoints'], [570, 'Residence', '100 endpoints']].forEach(function (b, i) {
+    s += '<line x1="360" y1="54" x2="' + b[0] + '" y2="96" stroke="#555" stroke-width="3"/>';
+    s += '<rect x="' + (b[0] - 80) + '" y="96" width="160" height="48" rx="6" fill="#f3f3f3" stroke="#555" stroke-width="2"/><text x="' + b[0] + '" y="116" font-size="15" text-anchor="middle" fill="#222">' + b[1] + '</text><text x="' + b[0] + '" y="135" font-size="13" text-anchor="middle" fill="#555">' + b[2] + '</text>';
+    s += port(360 + (b[0] - 360) * 0.28, i === 1 ? 85 : 66, i + 2);
+  });
+  s += box(360, 36, 56, 'M', 'g2') + port(360, 24, 1).replace('cy="24"', 'cy="22"').replace('y="29"', 'y="27"');
+  return s + '</svg>';
+}
+function figRoute() {
+  function sw(x, y, name) { return '<rect x="' + (x - 45) + '" y="' + y + '" width="90" height="36" rx="5" fill="#c5daf2" stroke="#1a5fb4" stroke-width="2" stroke-dasharray="6 4"/><text x="' + x + '" y="' + (y + 24) + '" font-size="17" text-anchor="middle" fill="#222">' + name + '</text>'; }
+  function wt(x, y) { return '<text x="' + x + '" y="' + y + '" font-size="15" font-weight="bold" text-anchor="middle" fill="#b00000">1</text>'; }
+  function panel(ox, title, addrs, lines) {
+    var hh = 34 + lines.length * 22, y0 = 86 - hh / 2, s = '<text x="' + (ox + 175) + '" y="18" font-size="16" font-weight="bold" text-anchor="middle" fill="#222">' + title + '</text>';
+    s += '<line x1="' + (ox + 70) + '" y1="66" x2="' + (ox + 70) + '" y2="130" stroke="#999" stroke-width="3"/>' + wt(ox + 56, 104);
+    s += '<path d="M' + (ox + 88) + ' 122 L' + (ox + 88) + ' 80" stroke="#1a5fb4" stroke-width="2.5" fill="none" stroke-dasharray="6 5"/><path d="M' + (ox + 82) + ' 88 L' + (ox + 88) + ' 76 L' + (ox + 94) + ' 88" stroke="#1a5fb4" stroke-width="2.5" fill="none"/>';
+    addrs.forEach(function (a, i) {
+      var x = ox + 45 + i * 86;
+      s += '<line x1="' + (ox + 70) + '" y1="166" x2="' + x + '" y2="256" stroke="#999" stroke-width="2"/>';
+      s += wt([ox + 36, ox + 100, ox + 160, ox + 220][i], 240);
+      s += '<rect x="' + (x - 40) + '" y="256" width="80" height="42" rx="4" class="g0" stroke-width="2"/><text x="' + x + '" y="273" font-size="14" font-weight="bold" text-anchor="middle" fill="#222">E' + (i + 1) + '</text><text x="' + x + '" y="291" font-size="13" text-anchor="middle" fill="#222">' + a + '</text>';
+    });
+    s += sw(ox + 70, 30, 'R1') + sw(ox + 70, 130, 'R2');
+    s += '<rect x="' + (ox + 126) + '" y="' + y0 + '" width="216" height="' + hh + '" rx="6" fill="#fff" stroke="#888" stroke-width="1.5"/><text x="' + (ox + 138) + '" y="' + (y0 + 22) + '" font-size="14" fill="#555">message from R2 to R1</text>';
+    lines.forEach(function (l, i) { s += '<text x="' + (ox + 138) + '" y="' + (y0 + 44 + i * 22) + '" font-size="15" font-weight="bold" fill="#222">cost to ' + l + '</text>'; });
+    return s;
+  }
+  var s = '<svg class="topo" viewBox="0 0 720 306" role="img" aria-label="Two pictures of R2, with its endpoints E1 to E4, sending its distance vector message to R1. Every link has weight 1. Without prefixes, the endpoints have the addresses 10.0.0.1, 10.0.0.4, 10.0.0.7 and 10.0.0.11, and the message has one line for each of them, e.g., cost to 10.0.0.1: 1. With prefixes, the endpoints have 10.0.0.0 to 10.0.0.3, and the message has one line: cost to 10.0.0.0/30: 1.">';
+  s += panel(0, 'without prefixes', ['10.0.0.1', '10.0.0.4', '10.0.0.7', '10.0.0.11'], ['10.0.0.1: 1', '10.0.0.4: 1', '10.0.0.7: 1', '10.0.0.11: 1']);
+  s += '<line x1="360" y1="8" x2="360" y2="300" stroke="#ccc" stroke-width="1.5"/>' + panel(370, 'with prefixes', ['10.0.0.0', '10.0.0.1', '10.0.0.2', '10.0.0.3'], ['10.0.0.0/30: 1']);
+  return s + '</svg>';
+}
+function figLpm() {
+  function ep(x, y, label) { return '<rect x="' + (x - 62) + '" y="' + y + '" width="124" height="24" rx="4" fill="#fff" stroke="#555" stroke-width="1.5"/><text x="' + x + '" y="' + (y + 17) + '" font-size="13" text-anchor="middle" fill="#222">' + label + '</text>'; }
+  function ln(x1, y1, x2, y2, w) { return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#555" stroke-width="' + (w || 3) + '"/>'; }
+  var s = '<svg class="topo" viewBox="0 0 720 346" role="img" aria-label="The university, 129.97.0.0/16. The campus network has two routers, P and Q, connected to each other, each with endpoints. The CS department, 129.97.167.0/24, has a router D with two endpoints. D is connected to Q, and also directly to router R on link 3. R is connected to P on link 2, and to the rest of the Internet, drawn as a cloud, on link 1.">';
+  s += '<rect x="6" y="6" width="520" height="334" rx="14" fill="#eef5fc" stroke="#97bfe8" stroke-width="2"/><text x="20" y="28" font-size="16" fill="#0d56a1">the university: 129.97.0.0/16</text>';
+  s += '<rect x="16" y="40" width="330" height="170" rx="10" fill="#fff" fill-opacity="0.6" stroke="#97bfe8" stroke-width="1.5" stroke-dasharray="6 4"/><text x="28" y="60" font-size="14" fill="#0d56a1">campus network (all other departments)</text>';
+  s += '<rect x="16" y="226" width="330" height="104" rx="10" fill="#d6f0dc" stroke="#1a7f37" stroke-width="1.5"/><text x="28" y="246" font-size="14" fill="#1a7f37">CS department: 129.97.167.0/24</text>';
+  s += ln(150, 92, 260, 92, 2) + ln(150, 172, 260, 172, 2) + ln(150, 186, 260, 172, 2) + ln(150, 268, 260, 290, 2) + ln(150, 304, 260, 290, 2);
+  s += ln(288, 110, 288, 154) + ln(288, 190, 288, 272) + ln(440, 160, 316, 92) + ln(440, 176, 316, 290) + ln(496, 168, 606, 168, 4);
+  s += ep(88, 80, '129.97.8.1') + ep(88, 158, '129.97.30.5') + ep(88, 186, '129.97.30.6') + ep(88, 256, '129.97.167.168') + ep(88, 292, '129.97.167.20');
+  s += box(288, 74, 56, 'P', 'g2') + box(288, 154, 56, 'Q', 'g2') + box(288, 272, 56, 'D', 'g2') + box(468, 150, 56, 'R', 'g2');
+  var blobs = [[630, 176, 30, 24], [658, 150, 32, 26], [690, 174, 26, 24], [660, 190, 40, 18]];
+  blobs.forEach(function (b) { s += '<ellipse cx="' + b[0] + '" cy="' + b[1] + '" rx="' + b[2] + '" ry="' + b[3] + '" fill="#f3f3f3" stroke="#555" stroke-width="4"/>'; });
+  blobs.forEach(function (b) { s += '<ellipse cx="' + b[0] + '" cy="' + b[1] + '" rx="' + b[2] + '" ry="' + b[3] + '" fill="#f3f3f3"/>'; });
+  s += '<text x="660" y="168" font-size="14" text-anchor="middle" fill="#222">the rest of</text><text x="660" y="187" font-size="14" text-anchor="middle" fill="#222">the Internet</text>';
+  s += port(560, 168, 1) + port(396, 136, 2) + port(396, 216, 3);
+  return s + '</svg>';
+}
+function cell(x, y, w, label, hot, small) {
+  return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="40" fill="' + (hot ? '#fff6c9' : '#f3f3f3') + '" stroke="#555" stroke-width="1.5"/><text x="' + (x + w / 2) + '" y="' + (y + 26) + '" font-size="' + (small ? 13 : 16) + '" text-anchor="middle" fill="#222"' + (hot ? ' font-weight="bold"' : '') + '>' + label + '</text>';
+}
+function figEncap() {
+  var s = '<svg class="topo" viewBox="0 0 720 86" role="img" aria-label="A packet on the link: Ethernet header, IPv4 header, TCP header, data from the application, and the Ethernet checksum at the end.">';
+  s += cell(10, 10, 150, 'Ethernet header', true) + cell(160, 10, 140, 'IPv4 header', true) + cell(300, 10, 120, 'TCP header') + cell(420, 10, 190, 'data (e.g., HTTP)') + cell(610, 10, 100, 'checksum', false, true);
+  s += '<text x="85" y="72" font-size="14" text-anchor="middle" fill="#555">link layer</text><text x="230" y="72" font-size="14" text-anchor="middle" fill="#555">network layer</text><text x="360" y="72" font-size="14" text-anchor="middle" fill="#555">transport layer</text><text x="515" y="72" font-size="14" text-anchor="middle" fill="#555">application</text><text x="660" y="72" font-size="14" text-anchor="middle" fill="#555">link layer</text>';
+  return s + '</svg>';
+}
+function figEth() {
+  var s = '<svg class="topo" viewBox="0 0 720 86" role="img" aria-label="An Ethernet frame: destination MAC address, 6 bytes; source MAC address, 6 bytes; type, 2 bytes; the data, for example an IPv4 packet; checksum, 4 bytes.">';
+  s += cell(10, 10, 190, 'destination MAC address', true, true) + cell(200, 10, 160, 'source MAC address', true, true) + cell(360, 10, 70, 'type') + cell(430, 10, 180, 'data (e.g., an IPv4 packet)', false, true) + cell(610, 10, 100, 'checksum', false, true);
+  s += '<text x="105" y="72" font-size="14" text-anchor="middle" fill="#555">6 bytes</text><text x="280" y="72" font-size="14" text-anchor="middle" fill="#555">6 bytes</text><text x="395" y="72" font-size="14" text-anchor="middle" fill="#555">2 bytes</text><text x="520" y="72" font-size="14" text-anchor="middle" fill="#555">up to 1500 bytes</text><text x="660" y="72" font-size="14" text-anchor="middle" fill="#555">4 bytes</text>';
+  return s + '</svg>';
+}
+function figIpv4() {
+  var u = 21.5, x0 = 16, s = '<svg class="topo" viewBox="0 0 720 300" role="img" aria-label="The IPv4 header in rows of 32 bits. Row 1: version, header length, type of service, total length. Row 2: identification, flags, fragment offset. Row 3: time to live, protocol, header checksum. Row 4: source IP address. Row 5: destination IP address. Then options, if any, and the data.">';
+  [0, 8, 16, 24, 32].forEach(function (b) { s += '<text x="' + (x0 + b * u) + '" y="14" font-size="13" text-anchor="middle" fill="#555">' + (b === 32 ? 'bit 32' : 'bit ' + b) + '</text>'; });
+  function row(y, cells) { var b = 0; cells.forEach(function (c) { s += cell(x0 + b * u, y, c[0] * u, c[1], c[2], c[3]); b += c[0]; }); }
+  row(22, [[4, 'version', false, true], [4, 'hdr len', false, true], [8, 'type of service'], [16, 'total length']]);
+  row(62, [[16, 'identification'], [3, 'flags', false, true], [13, 'fragment offset']]);
+  row(102, [[8, 'time to live (TTL)', true, true], [8, 'protocol', true], [16, 'header checksum']]);
+  row(142, [[32, 'source IP address', true]]);
+  row(182, [[32, 'destination IP address', true]]);
+  row(222, [[32, 'options (if any)']]);
+  s += '<rect x="' + x0 + '" y="262" width="' + (32 * u) + '" height="34" fill="#fff" stroke="#555" stroke-width="1.5" stroke-dasharray="6 4"/><text x="' + (x0 + 16 * u) + '" y="284" font-size="16" text-anchor="middle" fill="#222">data (e.g., a TCP segment)</text>';
+  return s + '</svg>';
+}
+function figMoveIP() {
+  function panel(ox, title, moved) {
+    var s = '<text x="' + (ox + 175) + '" y="20" font-size="18" font-weight="bold" text-anchor="middle" fill="#222">' + title + '</text>';
+    s += '<rect x="' + (ox + 2) + '" y="28" width="348" height="240" rx="12" fill="#f7fafd" stroke="#97bfe8" stroke-width="1.5" stroke-dasharray="6 4"/><text x="' + (ox + 12) + '" y="48" font-size="15" fill="#0d56a1">the Library</text><text x="' + (ox + 12) + '" y="67" font-size="15" fill="#0d56a1">10.8.0.0/23</text>';
+    s += '<line x1="' + (ox + 175) + '" y1="72" x2="' + (ox + 90) + '" y2="106" stroke="#555" stroke-width="3"/><line x1="' + (ox + 175) + '" y1="72" x2="' + (ox + 262) + '" y2="106" stroke="#555" stroke-width="3"/>';
+    function blk(x, name, block) {
+      return '<rect x="' + (x - 82) + '" y="106" width="164" height="156" rx="10" fill="#eef5fc" stroke="#97bfe8" stroke-width="2"/>' +
+        '<text x="' + x + '" y="130" font-size="17" font-weight="bold" text-anchor="middle" fill="#0d56a1">' + name + '</text>' +
+        '<text x="' + x + '" y="152" font-size="17" text-anchor="middle" fill="#0d56a1">' + block + '</text>';
+    }
+    s += blk(ox + 90, 'First floor', '10.8.0.0/24') + blk(ox + 262, 'Second floor', '10.8.1.0/24');
+    function lap(x, addr, ghost) {
+      return '<rect x="' + (x - 72) + '" y="168" width="144" height="80" rx="6" fill="' + (ghost ? 'none' : '#fff6c9') + '" stroke="' + (ghost ? '#999' : '#8a6d00') + '" stroke-width="2"' + (ghost ? ' stroke-dasharray="6 4"' : '') + '/>' +
+        '<text x="' + x + '" y="198" font-size="17" text-anchor="middle" fill="' + (ghost ? '#888' : '#222') + '">' + (ghost ? '(Alice was here)' : 'Alice\'s laptop') + '</text>' +
+        '<text x="' + x + '" y="230" font-size="20" font-weight="bold" text-anchor="middle" fill="' + (ghost ? '#888' : '#222') + '"' + (ghost ? ' text-decoration="line-through"' : '') + '>' + addr + '</text>';
+    }
+    s += moved ? lap(ox + 90, '10.8.0.57', true) + lap(ox + 262, '10.8.1.14') : lap(ox + 90, '10.8.0.57');
+    s += box(ox + 175, 36, 56, 'L', 'g2');
+    return s;
+  }
+  var s = '<svg class="topo" viewBox="0 0 720 274" role="img" aria-label="Two pictures of the Library, 10.8.0.0/23, with router L connected to the first floor, 10.8.0.0/24, and the second floor, 10.8.1.0/24. Before: Alice\'s laptop is on the first floor with address 10.8.0.57. After: it is on the second floor, and its address is 10.8.1.14.">';
+  s += panel(0, 'before', false) + '<line x1="360" y1="4" x2="360" y2="270" stroke="#ccc" stroke-width="1.5"/>' + panel(366, 'after Alice moves', true);
+  return s + '</svg>';
+}
+function figMoveMAC() {
+  function panel(ox, title, link) {
+    var s = '<text x="' + (ox + 175) + '" y="20" font-size="18" font-weight="bold" text-anchor="middle" fill="#222">' + title + '</text>';
+    s += '<rect x="' + (ox + 2) + '" y="28" width="348" height="170" rx="12" fill="#f7fafd" stroke="#97bfe8" stroke-width="1.5" stroke-dasharray="6 4"/><text x="' + (ox + 12) + '" y="48" font-size="15" fill="#0d56a1">the Library</text><text x="' + (ox + 12) + '" y="67" font-size="15" fill="#0d56a1">10.8.0.0/23</text>';
+    var xs = [ox + 48, ox + 130, ox + 220, ox + 302], who = ['', 'printer', 'desktop', ''];
+    who[link - 1] = 'Alice';
+    xs.forEach(function (x, i) {
+      s += '<line x1="' + (ox + 175) + '" y1="72" x2="' + x + '" y2="132" stroke="#555" stroke-width="2"/>';
+      s += port(ox + 175 + (x - ox - 175) * 0.5, 102, i + 1);
+      s += who[i] ? '<rect x="' + (x - 37) + '" y="132" width="74" height="34" rx="4" fill="' + (who[i] === 'Alice' ? '#fff6c9' : '#fff') + '" stroke="' + (who[i] === 'Alice' ? '#8a6d00' : '#555') + '" stroke-width="2"/><text x="' + x + '" y="155" font-size="16" text-anchor="middle" fill="#222"' + (who[i] === 'Alice' ? ' font-weight="bold"' : '') + '>' + who[i] + '</text>'
+                  : '<rect x="' + (x - 37) + '" y="132" width="74" height="34" rx="4" fill="none" stroke="#bbb" stroke-width="1.5" stroke-dasharray="5 4"/>';
+    });
+    s += '<text x="' + (ox + 89) + '" y="188" font-size="15" text-anchor="middle" fill="#0d56a1">first floor</text><text x="' + (ox + 261) + '" y="188" font-size="15" text-anchor="middle" fill="#0d56a1">second floor</text>';
+    s += box(ox + 175, 36, 110, 'L2 switch', 'g1');
+    s += '<text x="' + (ox + 8) + '" y="224" font-size="16" fill="#222">Alice\'s laptop: MAC <tspan font-weight="bold">3c:22:fb:1a:90:4e</tspan></text><text x="' + (ox + 8) + '" y="246" font-size="16" fill="#222">IP <tspan font-weight="bold">10.8.0.57</tspan></text>';
+    s += '<text x="' + (ox + 8) + '" y="280" font-size="16" font-weight="bold" fill="#222">the L2 switch\'s forwarding table</text>';
+    [['Alice (3c:22:fb:1a:90:4e)', 'link ' + link, true], ['printer', 'link 2'], ['desktop', 'link 3']].forEach(function (r, i) {
+      var y = 290 + i * 30;
+      s += '<rect x="' + (ox + 8) + '" y="' + y + '" width="290" height="30" fill="' + (r[2] && link !== 1 ? '#f7a23b' : '#fff') + '" stroke="#999" stroke-width="1"/><text x="' + (ox + 16) + '" y="' + (y + 21) + '" font-size="16" fill="#222">' + r[0] + '</text><text x="' + (ox + 290) + '" y="' + (y + 21) + '" font-size="16" text-anchor="end" fill="#222"' + (r[2] ? ' font-weight="bold"' : '') + '>' + r[1] + '</text>';
+    });
+    return s;
+  }
+  var s = '<svg class="topo" viewBox="0 0 720 388" role="img" aria-label="Two pictures of the Library as one local network, 10.8.0.0/23, with one L2 switch. Links 1 and 2 go to the first floor, links 3 and 4 to the second floor. Before: Alice\'s laptop is on link 1, the printer on link 2, the desktop on link 3. After Alice moves to the second floor: her laptop is on link 4. Its MAC address, 3c:22:fb:1a:90:4e, and its IP address, 10.8.0.57, are the same in both. In the forwarding table, only the entry for Alice changes, from link 1 to link 4.">';
+  s += panel(0, 'before', 1) + '<line x1="360" y1="4" x2="360" y2="384" stroke="#ccc" stroke-width="1.5"/>' + panel(366, 'after Alice moves', 4);
+  return s + '</svg>';
+}
+function figLayers() {
+  var L = [['application', '#f3f3f3'], ['transport (layer 4)', '#f3f3f3'], ['network (layer 3)', '#fde2c8'], ['link (layer 2)', '#d6f0dc'], ['physical (layer 1)', '#e6e6e6']];
+  function stack(cx, name, from) {
+    var s = '';
+    L.forEach(function (l, i) {
+      if (i < from) return;
+      s += '<rect x="' + (cx - 78) + '" y="' + (12 + i * 34) + '" width="156" height="34" fill="' + l[1] + '" stroke="#555" stroke-width="1.5"/><text x="' + cx + '" y="' + (34 + i * 34) + '" font-size="14" text-anchor="middle" fill="#222">' + l[0] + '</text>';
+    });
+    return s + '<text x="' + cx + '" y="206" font-size="15" font-weight="bold" text-anchor="middle" fill="#222">' + name + '</text>';
+  }
+  var s = '<svg class="topo" viewBox="0 0 720 214" role="img" aria-label="Four devices side by side. An endpoint has all five layers: application, transport, network (layer 3), link (layer 2) and physical (layer 1). An L2 switch has only the link and physical layers. A router has the network, link and physical layers. The other endpoint again has all five.">';
+  s += '<line x1="90" y1="165" x2="630" y2="165" stroke="#999" stroke-width="3"/>';
+  s += stack(90, 'endpoint', 0) + stack(270, 'L2 switch', 3) + stack(450, 'router', 2) + stack(630, 'endpoint', 0);
+  return s + '</svg>';
+}
+function figHops() {
+  var s = '<svg class="topo" viewBox="0 0 720 220" role="img" aria-label="A is connected through its network to interface 1 of R1. Interface 2 of R1 goes to interface 1 of R2, with cost 1. Interface 2 of R2 goes to interface 1 of R3, with cost 2. Interface 3 of R1 goes to interface 2 of R3, with cost 5. Interface 3 of R3 goes through a network to B.">';
+  function net(x) { return '<ellipse cx="' + x + '" cy="150" rx="40" ry="30" fill="#eef5fc" stroke="#97bfe8" stroke-width="2"/>'; }
+  s += '<line x1="40" y1="150" x2="225" y2="150" stroke="#555" stroke-width="3"/><line x1="495" y1="150" x2="680" y2="150" stroke="#555" stroke-width="3"/>';
+  s += '<line x1="225" y1="150" x2="360" y2="50" stroke="#555" stroke-width="3"/><line x1="360" y1="50" x2="495" y2="150" stroke="#555" stroke-width="3"/><line x1="225" y1="150" x2="495" y2="150" stroke="#555" stroke-width="3"/>';
+  s += net(128) + net(592);
+  s += '<text x="268" y="88" font-size="15" fill="#555" text-anchor="middle">cost 1</text><text x="452" y="88" font-size="15" fill="#555" text-anchor="middle">cost 2</text><text x="360" y="172" font-size="15" fill="#555" text-anchor="middle">cost 5</text>';
+  s += box(40, 132, 56, 'A') + box(680, 132, 56, 'B') + box(225, 132, 64, 'R1', 'g2') + box(360, 32, 64, 'R2', 'g2') + box(495, 132, 64, 'R3', 'g2');
+  s += port(180, 150, 1) + port(252, 116, 2) + port(272, 150, 3) + port(318, 68, 1) + port(402, 68, 2) + port(468, 116, 1) + port(448, 150, 2) + port(540, 150, 3);
+  s += '<text x="40" y="192" font-size="14" fill="#222" text-anchor="middle">IP_A</text><text x="40" y="210" font-size="14" fill="#222" text-anchor="middle">MAC_A</text><text x="680" y="192" font-size="14" fill="#222" text-anchor="middle">IP_B</text><text x="680" y="210" font-size="14" fill="#222" text-anchor="middle">MAC_B</text>';
+  return s + '</svg>';
+}
+function figPath(hot, packet) {
+  var xs = [62, 190, 318, 446, 560, 668], names = ['laptop', 'L2 switch', 'router 1', 'router 2', 'L2 switch', 'server'], w = [86, 96, 96, 96, 96, 86], cls = ['', 'g1', 'g2', 'g2', 'g1', ''];
+  var s = '<svg class="topo" viewBox="0 0 720 166" role="img" aria-label="The path of the packet: laptop, L2 switch, router 1, router 2, L2 switch, server. The laptop, the first L2 switch and router 1 are in the Library\'s network. Router 2, the second L2 switch and the server are in the server\'s network.">';
+  s += '<rect x="10" y="36" width="364" height="122" rx="12" fill="#eef5fc" stroke="#97bfe8" stroke-width="2"/><text x="22" y="58" font-size="15" fill="#0d56a1">the Library\'s network</text>';
+  s += '<rect x="392" y="36" width="320" height="122" rx="12" fill="#eef5fc" stroke="#97bfe8" stroke-width="2"/><text x="404" y="58" font-size="15" fill="#0d56a1">the server\'s network</text>';
+  s += '<line x1="62" y1="96" x2="668" y2="96" stroke="#555" stroke-width="3"/>';
+  xs.forEach(function (x, i) { s += box(x, 78, w[i], names[i], cls[i], i === hot).replace('<rect ', '<rect data-dev="' + i + '" '); });
+  if (packet) s += '<g class="pkt"><rect x="-22" y="124" width="44" height="22" rx="3" fill="#fff6c9" stroke="#8a6d00" stroke-width="2"/><text x="0" y="140" font-size="13" font-weight="bold" text-anchor="middle" fill="#222">packet</text></g>';
+  return s + '</svg>';
+}
+
+var FIGS = {
+  'topo-initial': function () { return topo(INITIAL); },
+  'table-initial': function () { return runTable(INITIAL, true); },
+  'topo-tidy': function () { return topo(TIDY); },
+  'topo-initial': function () { return topo(INITIAL); },
+  'lib': figLib,
+  'lpm': figLpm,
+  'nets': figNets,
+  'world': function () { return figWorld(false); },
+  'world-path': function () { return figWorld(true); },
+  'campus': figCampus,
+  'route': figRoute,
+  'encap': figEncap,
+  'hops': figHops,
+  'moveip': figMoveIP,
+  'movemac': figMoveMAC,
+  'layers': figLayers,
+  'eth': figEth,
+  'ipv4': figIpv4,
+  'learn': null
+};
+function fillFigs() { $$('[data-fig]').forEach(function (el) { if (FIGS[el.dataset.fig] && !el.firstChild) el.innerHTML = FIGS[el.dataset.fig](); }); }
+fillFigs();
+
+// ---------------------------------------------------------------- boxes ("gates")
+// Each box builds itself. It calls finish(points, value) when the student has done enough,
+// and is given what was saved for it (rec) when the page is opened again.
+var GATES = {};
+
+GATES.think = function (box, rec, finish) {
+  var ta = h('textarea', { 'aria-label': 'Your answer' });
+  var count = h('p', { class: 'count' });
+  var btn = h('button', { class: 'btn' }, 'Done');
+  box.append(ta, count, btn);
+  function paint() {
+    var left = CONFIG.thinkMin - ta.value.trim().length;
+    btn.disabled = left > 0 && !rec.done;
+    count.textContent = rec.done ? 'Saved.' : (left > 0 ? 'Write a bit more to continue.' : '');
+  }
+  ta.value = rec.v || '';
+  ta.addEventListener('input', function () { rec.v = ta.value; save(); paint(); });
+  btn.addEventListener('click', function () { btn.hidden = true; finish(5, ta.value); paint(); });
+  if (rec.done) btn.hidden = true;
+  paint();
+};
+
+GATES.choice = function (box, rec, finish) {
+  var fb = h('p', { class: 'fb', hidden: '' });
+  box.append(fb);
+  var tries = rec.tries || 0, btns = $$('.opts button', box);
+  function lock(k) {
+    btns.forEach(function (b) { b.disabled = true; if (b.dataset.k === k) b.classList.add('right'); });
+    if (box.dataset.ok) { fb.hidden = false; fb.className = 'fb ok'; fb.textContent = box.dataset.ok; } else fb.hidden = true;
+  }
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (b.dataset.k === box.dataset.answer) { lock(b.dataset.k); finish([10, 6, 3][Math.min(tries, 2)], b.dataset.k); }
+      else { tries++; rec.tries = tries; save(); b.disabled = true; b.classList.add('wrong'); fb.hidden = false; fb.className = 'fb no'; fb.textContent = b.dataset.fb || 'Not this one. Try again.'; }
+    });
+  });
+  if (rec.done) lock(box.dataset.answer);
+};
+
+var CHECKS = {
+  n65536: function (v) { v = v.toLowerCase().replace(/[\s,'_]/g, '').replace(/(\d)\.(?=\d{3}(\D|$))/g, '$1'); return /(^|[^\d.])65536($|[^\d])/.test(v) || /(^|\D)2(\^|\*\*)16($|\D)/.test(v) || /(^|\D)256(\*|x|×)256($|\D)/.test(v); }
+};
+GATES.fill = function (box, rec, finish) {
+  var inp = h('input', { type: 'text', 'aria-label': 'Your answer' });
+  var btn = h('button', { class: 'btn' }, 'Check');
+  var show = h('button', { class: 'btn quiet', hidden: '' }, 'Show me');
+  var fb = h('p', { class: 'fb', hidden: '' });
+  var row = h('p'); row.append(inp, ' ', btn, ' ', show); box.append(row, fb);
+  var tries = rec.tries || 0;
+  function lock(msg) { inp.disabled = btn.disabled = true; show.hidden = true; fb.hidden = false; fb.className = 'fb ok'; fb.textContent = msg; }
+  function check() {
+    if (!inp.value.trim()) return;
+    if (CHECKS[box.dataset.check](inp.value)) { lock(box.dataset.answer); finish([10, 6, 3][Math.min(tries, 2)], inp.value); }
+    else { tries++; rec.tries = tries; save(); fb.hidden = false; fb.className = 'fb no'; fb.textContent = 'Not quite. Think about how many bits in the prefix are fixed, and how many are wildcards, i.e., can be anything. How many different concrete values can be represented with those bits?'; if (tries >= 2) show.hidden = false; }
+  }
+  btn.addEventListener('click', check);
+  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') check(); });
+  show.addEventListener('click', function () { lock(box.dataset.answer); finish(1, ''); });
+  if (rec.done) { inp.value = rec.v || ''; lock(box.dataset.answer); }
+};
+
+// --- the first exercise: change the addresses and the table, in any format, to make the table small
+// A destination can be one address (10.0.0.5), several (10.0.0.1, 10.0.0.4), a range (10.0.0.0 - 10.0.0.3, 10.0.0.0 to 3),
+// or a prefix (10.0.0.4/30). The "10.0.0." may be left out. Returns the set of last numbers (0 to 15) it covers, or null.
+function parseDest(s) {
+  parseDest.why = '';
+  s = s.trim().toLowerCase(); if (!s) { parseDest.why = 'empty'; return null; }
+  s = s.replace(/10\.0\.0\.(?=[\[{(])/g, '');   // 10.0.0.[0-3]
+  var set = {}, ok = true, A = '(?:10\\.0\\.0\\.|\\.)?(\\d{1,3})';
+  s = s.replace(/\band\b/g, ',').replace(/\s*(–|—|\bto\b|\bthrough\b|-)\s*/g, '-');
+  s.split(/[\s,;{}\[\]()]+/).filter(Boolean).forEach(function (part) {
+    var m, a, b;
+    if ((m = new RegExp('^' + A + '-' + A + '$').exec(part))) { a = +m[1]; b = +m[2]; if (b > 15 && b <= 255 && a <= b) parseDest.why = 'range'; if (a > b || b > 15) { ok = false; return; } for (; a <= b; a++) set[a] = 1; }
+    else if ((m = new RegExp('^' + A + '/(\\d{1,2})$').exec(part)) && +m[2] <= 32) {
+      var size = +m[2] <= 24 ? 256 : 1 << (32 - m[2]), base = Math.floor(+m[1] / size) * size;
+      for (a = 0; a < 16; a++) if (a >= base && a < base + size) set[a] = 1;
+    }
+    else if (/^(10\.0\.0\.)?[x*]$/.test(part)) { for (a = 0; a < 16; a++) set[a] = 1; }
+    else if ((m = new RegExp('^' + A + '$').exec(part))) { if (+m[1] <= 15) set[+m[1]] = 1; else { ok = false; if (+m[1] <= 255) parseDest.why = 'range'; } }
+    else ok = false;
+  });
+  return ok ? set : null;
+}
+GATES.table = function (box, rec, finish) {
+  // addr: endpoint -> the last number of its address. Two endpoints may be given the same address for a moment;
+  // that is shown as an error at once, and the table cannot be checked until it is fixed.
+  var addr = rec.addr || {}, checks = rec.checks || 0;
+  if (!rec.addr) (rec.strip || INITIAL).forEach(function (e, a) { if (e) addr[e] = a; });
+  var rows = rec.rows || INITIAL.map(function (e, a) { return e ? { d: ipOf(a), l: GROUP[e] } : null; }).filter(Boolean);
+  var fig = h('div'), cap = h('p', { class: 'score' }), tab = h('table', { class: 'ft' });
+  var add = h('button', { class: 'btn quiet' }, 'Add an entry'), btn = h('button', { class: 'btn' }, 'Check'), msg = h('p', { class: 'fb', hidden: '' });
+  var give = h('button', { class: 'btn quiet', hidden: '' }, 'Show me a solution');
+  var acts = h('p'); acts.append(add, ' ', btn, ' ', give);
+  box.append(fig, cap, tab, acts, msg);
+  function keepState() { rec.addr = addr; delete rec.strip; rec.rows = rows; rec.checks = checks; save(); }
+  function dups() {
+    var by = {}; NAMES.forEach(function (e) { (by[addr[e]] = by[addr[e]] || []).push(e); });
+    return Object.keys(by).filter(function (a) { return by[a].length > 1; }).map(function (a) { return { a: +a, who: by[a] }; });
+  }
+  function dupText(d) { var w = d.who; return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] + ' have the same address, ' + ipOf(d.a) + '. Each endpoint needs its own address.'; }
+  function markDups() {
+    var d = dups(), bad = {}; d.forEach(function (x) { x.who.forEach(function (e) { bad[e] = 1; }); });
+    $$('select[data-e]', fig).forEach(function (s) { s.parentNode.classList.toggle('dup', !!bad[s.dataset.e]); });
+    return d;
+  }
+  function paintNet() {
+    fig.innerHTML = topo(INITIAL, { pick: true, addr: addr });
+    $$('select[data-e]', fig).forEach(function (s) {
+      s.addEventListener('change', function () {
+        addr[s.dataset.e] = +s.value; keepState();
+        var d = markDups();
+        if (d.length) say(false, dupText(d[0])); else msg.hidden = true;
+      });
+    });
+    markDups();
+  }
+  function paintRows() {
+    cap.innerHTML = 'R1\'s forwarding table: <b>' + rows.length + '</b> ' + (rows.length === 1 ? 'entry' : 'entries');
+    tab.innerHTML = '<tr><th>destination</th><th>send on</th><th></th></tr>';
+    rows.forEach(function (r, i) {
+      var tr = h('tr'), d = h('input', { type: 'text', 'aria-label': 'destination of entry ' + (i + 1) }), l = h('select', { 'aria-label': 'link of entry ' + (i + 1) }, '<option value="0">link 1</option><option value="1">link 2</option><option value="2">link 3</option>'), x = h('button', { class: 'btn quiet', 'aria-label': 'remove entry ' + (i + 1) }, 'remove');
+      d.value = r.d; l.value = r.l;
+      d.addEventListener('input', function () { r.d = d.value; msg.hidden = true; keepState(); });
+      l.addEventListener('change', function () { r.l = +l.value; msg.hidden = true; keepState(); });
+      x.addEventListener('click', function () { rows.splice(i, 1); msg.hidden = true; keepState(); paintRows(); });
+      [d, l, x].forEach(function (el) { var td = h('td'); td.append(el); tr.append(td); });
+      tab.append(tr);
+    });
+  }
+  function say(ok, text) { msg.hidden = false; msg.className = 'fb ' + (ok ? 'ok' : 'no'); msg.textContent = text; }
+  function check() {
+    // what is checked is what is on the screen
+    $$('select[data-e]', fig).forEach(function (s) { addr[s.dataset.e] = +s.value; });
+    $$('tr', tab).slice(1).forEach(function (tr, i) { if (rows[i]) { rows[i].d = $('input', tr).value; rows[i].l = +$('select', tr).value; } });
+    var d = markDups();
+    if (d.length) return say(false, dupText(d[0]));
+    var sets = [];
+    for (var i = 0; i < rows.length; i++) {
+      var s = parseDest(rows[i].d);
+      if (!s && parseDest.why === 'empty') return say(false, 'Entry ' + (i + 1) + ' has no destination. Fill it in, or remove the entry.');
+      if (!s && parseDest.why === 'range') return say(false, 'Entry ' + (i + 1) + ': "' + rows[i].d + '" includes an address that is not one of the 16 addresses in this exercise (10.0.0.0 to 10.0.0.15).');
+      if (!s) return say(false, 'Entry ' + (i + 1) + ': I cannot tell which addresses "' + rows[i].d + '" is for. You can write one address as 10.0.0.5, several as a comma-separated list (e.g., 10.0.0.1, 10.0.0.4), or a range (e.g., 10.0.0.0 - 10.0.0.3).');
+      sets.push(s);
+    }
+    for (var k = 0; k < NAMES.length; k++) {
+      var e = NAMES[k], a = addr[e];
+      var links = {}; sets.forEach(function (s, i) { if (s[a]) links[rows[i].l] = 1; });
+      var ls = Object.keys(links);
+      if (!ls.length) return say(false, 'A packet destined for ' + e + ' (' + ipOf(a) + ') will match no entry.');
+      if (ls.length > 1) return say(false, 'A packet destined for ' + e + ' (' + ipOf(a) + ') matches more than one entry, and they conflict.');
+      if (+ls[0] !== GROUP[e]) return say(false, 'A packet destined for ' + e + ' (' + ipOf(a) + ') would be sent on link ' + (+ls[0] + 1) + ', but ' + e + ' can only be reached through link ' + (GROUP[e] + 1) + '.');
+    }
+    var n = rows.length;
+    if (n >= 12) return say(false, 'This table works, but it still has ' + n + ' entries.');
+    say(true, n <= 3 ? 'This table works, and it has ' + n + ' entries. That is the smallest possible.' : 'This table works, but it still has more entries than it needs. You can continue to the next part, or try to make it smaller.');
+    finish(rec.gave ? 10 : n <= 3 ? 30 : 15, null);
+    return true;
+  }
+  add.addEventListener('click', function () { rows.push({ d: '', l: 0 }); keepState(); paintRows(); });
+  btn.addEventListener('click', function () { if (!check()) { checks++; keepState(); give.hidden = checks < 3; } });
+  give.addEventListener('click', function () {
+    rows = [0, 1, 2].map(function (g) { return { d: NAMES.filter(function (e) { return GROUP[e] === g; }).map(function (e) { return addr[e]; }).sort(function (x, y) { return x - y; }).map(ipOf).join(', '), l: g }; });
+    rec.gave = true; keepState(); paintRows(); check();
+  });
+  paintNet(); paintRows();
+  if (rec.done) check();
+};
+
+// --- longest prefix match
+function ip(s) { var p = s.split('.'); return ((+p[0] << 24) | (+p[1] << 16) | (+p[2] << 8) | +p[3]) >>> 0; }
+function inside(addr, pfx, len) { if (len === 0) return true; var m = (0xffffffff << (32 - len)) >>> 0; return ((addr & m) >>> 0) === ((pfx & m) >>> 0); }
+GATES.lpm = function (box, rec, finish) {
+  var T = [['0.0.0.0', 0], ['10.0.0.0', 8], ['129.97.0.0', 16], ['129.97.167.0', 24], ['129.97.167.168', 32]];
+  var Q = ['129.97.167.20', '142.150.1.1', '129.97.8.1', '129.97.167.168', '10.200.3.4'];
+  var i = rec.done ? Q.length : (rec.i || 0), got = rec.got || 0, missed = false;
+  var ask = h('p', { class: 'q' }), fb = h('p', { class: 'fb', hidden: '' });
+  var tab = h('table', { class: 'ft' }, '<tr><th>destination</th><th>send on</th></tr>' + T.map(function (t, k) { return '<tr class="pick" tabindex="0" data-k="' + k + '"><td>' + t[0] + '/' + t[1] + '</td><td>link ' + (k + 1) + '</td></tr>'; }).join(''));
+  box.append(ask, tab, fb);
+  function best(a) { var b = -1; T.forEach(function (t, k) { if (inside(a, ip(t[0]), t[1]) && (b < 0 || t[1] > T[b][1])) b = k; }); return b; }
+  function paint() {
+    $$('tr', tab).forEach(function (r) { r.classList.remove('hit', 'miss'); });
+    if (i >= Q.length) { ask.innerHTML = 'All ' + Q.length + ' packets forwarded. ' + stars(got >= 5 ? 3 : got >= 3 ? 2 : 1); $$('tr.pick', tab).forEach(function (r) { r.classList.remove('pick'); r.removeAttribute('tabindex'); }); return; }
+    ask.innerHTML = 'Packet ' + (i + 1) + ' of ' + Q.length + ': destination <span class="mono">' + Q[i] + '</span>';
+  }
+  function pick(k) {
+    if (i >= Q.length) return;
+    var a = ip(Q[i]), b = best(a), row = $$('tr', tab)[k + 1];
+    fb.hidden = false;
+    if (k === b) {
+      if (!missed) got++;
+      fb.className = 'fb ok'; fb.textContent = Q[i] + ' uses ' + T[k][0] + '/' + T[k][1] + (T[k][1] === 0 ? ', the default entry. No other entry matches.' : '.');
+      i++; missed = false; rec.i = i; rec.got = got; save(); paint();
+      $$('tr', tab)[k + 1].classList.add('hit');
+      if (i >= Q.length) finish(got * 6, null);
+    } else {
+      missed = true; row.classList.add('miss'); fb.className = 'fb no';
+      fb.textContent = inside(a, ip(T[k][0]), T[k][1])
+        ? 'This entry matches, but another entry that matches has a longer prefix.'
+        : 'This entry does not match: the first ' + T[k][1] + ' bits of ' + Q[i] + ' are not the same as in ' + T[k][0] + '.';
+    }
+  }
+  tab.addEventListener('click', function (e) { var r = e.target.closest('tr.pick'); if (r) pick(+r.dataset.k); });
+  tab.addEventListener('keydown', function (e) { var r = e.target.closest('tr.pick'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(+r.dataset.k); } });
+  paint();
+};
+
+// --- dividing 10.8.0.0/22
+GATES.carve = function (box, rec, finish) {
+  var B = [{ name: 'Library', the: 'the Library', need: 400 }, { name: 'Engineering', the: 'Engineering', need: 200 }, { name: 'Residence', the: 'the Residence', need: 100 }];
+  var COL = [['#d9e8f8', '#1a5fb4'], ['#d6f0dc', '#1a7f37'], ['#fde2c8', '#c2650a']];
+  var LENS = [23, 24, 25, 26];
+  function size(len) { return 1 << (32 - len); }
+  function dotted(off) { return '10.8.' + (off >> 8) + '.' + (off & 255); }
+  var pick = rec.pick || [null, null, null];   // each: {len, off} (off = offset inside the /22)
+  var bar = h('div', { class: 'carve-bar' }), ticks = h('div', { class: 'carve-ticks' }, '<span>10.8.0.0</span><span>10.8.1.0</span><span>10.8.2.0</span><span>10.8.3.0</span>');
+  for (var c = 0; c < 16; c++) bar.append(h('div'));
+  box.append(bar, ticks);
+  var menus = [];
+  B.forEach(function (b, k) {
+    var row = h('div', { class: 'carve-row' });
+    row.append(h('span', { class: 'who' }, '<i style="background:' + COL[k][0] + ';border-color:' + COL[k][1] + '"></i><b>' + b.name + '</b>: ' + b.need + ' endpoints'));
+    var len = h('select', { 'aria-label': b.name + ': size of the block' }, '<option value="">size of the block</option>' + LENS.map(function (l) { return '<option value="' + l + '">/' + l + '</option>'; }).join(''));
+    var off = h('select', { 'aria-label': b.name + ': which block' }, '<option value="">which block</option>');
+    row.append(len, off); box.append(row); menus.push([len, off]);
+    function fillOff() {
+      var l = +len.value, o = '<option value="">which block</option>';
+      if (l) for (var x = 0; x < 1024; x += size(l)) o += '<option value="' + x + '">' + dotted(x) + '/' + l + '</option>';
+      off.innerHTML = o;
+    }
+    len.addEventListener('change', function () { fillOff(); pick[k] = null; changed(); });
+    off.addEventListener('change', function () { pick[k] = off.value === '' ? null : { len: +len.value, off: +off.value }; changed(); });
+    if (pick[k]) { len.value = pick[k].len; fillOff(); off.value = pick[k].off; }
+  });
+  var btn = h('button', { class: 'btn' }, 'Check'), fb = h('p', { class: 'fb', hidden: '' });
+  box.append(btn, fb);
+  function paintBar() {
+    $$('div', bar).forEach(function (d, c) {
+      var owners = [];
+      pick.forEach(function (p, k) { if (p && c * 64 >= p.off && c * 64 < p.off + size(p.len)) owners.push(k); });
+      d.className = owners.length > 1 ? 'clash' : '';
+      d.style.background = owners.length === 1 ? COL[owners[0]][0] : '';
+      d.style.borderColor = owners.length === 1 ? COL[owners[0]][1] : '';
+      d.textContent = owners.length === 1 ? B[owners[0]].name[0] : owners.length > 1 ? '!' : '';
+    });
+  }
+  function changed() { rec.pick = pick; save(); paintBar(); fb.hidden = true; }
+  function say(ok, html) { fb.hidden = false; fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.innerHTML = html; }
+  btn.addEventListener('click', function () {
+    menus.forEach(function (m, i) { pick[i] = m[0].value === '' || m[1].value === '' ? null : { len: +m[0].value, off: +m[1].value }; });
+    rec.pick = pick; paintBar();
+    for (var k = 0; k < 3; k++) if (!pick[k]) return say(false, 'Pick a block for ' + B[k].the + ' first.');
+    for (k = 0; k < 3; k++) if (size(pick[k].len) < B[k].need) return say(false, 'A /' + pick[k].len + ' has ' + size(pick[k].len) + ' addresses, and ' + B[k].the + ' needs ' + B[k].need + '.');
+    for (k = 0; k < 3; k++) for (var j = k + 1; j < 3; j++)
+      if (pick[k].off < pick[j].off + size(pick[j].len) && pick[j].off < pick[k].off + size(pick[k].len))
+        return say(false, 'The blocks of ' + B[k].the + ' and ' + B[j].the + ' overlap (in red). An address can only be in one of them.');
+    var spare = 1024 - pick.reduce(function (s, p) { return s + size(p.len); }, 0);
+    if (!spare) return say(false, 'This works for the three buildings, but every address is used, so nothing is left for future buildings. Can one of the buildings have a smaller block?');
+    say(true, 'This works, and ' + spare + ' addresses are left unused for future buildings.');
+    finish(30, null);
+  });
+  paintBar();
+  if (rec.done) btn.click();
+};
+
+// --- following one packet: step forward and back, the headers shown at each step
+var SRV = '129.97.167.168', LAP = '10.8.0.57';
+// x: where the packet is drawn; at: the device it is at (-1 = on a link); mac: source and destination MAC; ttl; changed: the MAC addresses and TTL were just rewritten
+var TRACE = [
+  { x: 62, at: 0, mac: ['laptop', 'router 1'], ttl: 64, text: 'The laptop creates the packet. The destination, 129.97.167.168, is not in the laptop\'s prefix, so the laptop sends the packet to router 1: the destination MAC address is router 1\'s.' },
+  { x: 190, at: 1, mac: ['laptop', 'router 1'], ttl: 64, text: 'The L2 switch looks up the destination MAC address in its forwarding table (exact match), and sends the packet towards router 1. It changes nothing in the packet.' },
+  { x: 318, at: 2, mac: ['laptop', 'router 1'], ttl: 64, text: 'The destination MAC address is router 1\'s, so router 1 takes the packet. It looks up the destination IP address in its forwarding table (longest prefix match). The next hop is router 2.' },
+  { x: 382, at: -1, mac: ['router 1', 'router 2'], ttl: 63, changed: true, text: 'Router 1 sends the packet to router 2 with a new Ethernet header: the source MAC address is router 1\'s, and the destination MAC address is router 2\'s. It also decreases the TTL. The IP addresses are not changed.' },
+  { x: 446, at: 3, mac: ['router 1', 'router 2'], ttl: 63, text: 'The destination MAC address is router 2\'s, so router 2 takes the packet, and looks up the destination IP address. The server is in a network that router 2 is connected to, so there is no next router.' },
+  { x: 503, at: -1, mac: ['router 2', 'the server'], ttl: 62, changed: true, text: 'Router 2 sends the packet with a new Ethernet header again: the source MAC address is router 2\'s, and the destination MAC address is the server\'s. It decreases the TTL. The IP addresses are still the same.' },
+  { x: 560, at: 4, mac: ['router 2', 'the server'], ttl: 62, text: 'The L2 switch in the server\'s network looks up the destination MAC address, and sends the packet towards the server. It changes nothing.' },
+  { x: 668, at: 5, mac: ['router 2', 'the server'], ttl: 62, text: 'The destination MAC address is the server\'s, so the server takes the packet. The destination IP address is also its own, so its network layer hands the data to the transport layer.' }
+];
+GATES.trace = function (box, rec, finish) {
+  var i = Math.min(rec.i || 0, TRACE.length - 1), seen = rec.seen || 0;
+  var fig = h('div', {}, figPath(-1, true));
+  var hdr = h('div', { class: 'hdrs' },
+    '<div class="hrow"><span class="hname">Ethernet header</span><span class="hf chg" data-f="smac"><i>source MAC</i><b></b><s></s></span><span class="hf chg" data-f="dmac"><i>destination MAC</i><b></b><s></s></span></div>' +
+    '<div class="hrow"><span class="hname">IPv4 header</span><span class="hf same"><i>source IP</i><b>' + LAP + '</b></span><span class="hf same"><i>destination IP</i><b>' + SRV + '</b></span><span class="hf chg" data-f="ttl"><i>TTL</i><b></b><s></s></span></div>' +
+    '<p class="hkey"><span class="hf same">stays the same from the laptop to the server</span> <span class="hf chg">changes at every router</span></p>');
+  var cap = h('p', { class: 'hcap' });
+  var back = h('button', { class: 'btn quiet' }, 'Back'), next = h('button', { class: 'btn' }, 'Next'), count = h('span', { class: 'count' });
+  var acts = h('p'); acts.append(back, ' ', next, ' ', count);
+  box.append(fig, hdr, cap, acts);
+  var pkt = $('.pkt', fig), rects = $$('rect[data-dev]', fig);
+  function paint() {
+    var s = TRACE[i], prev = TRACE[Math.max(i - 1, 0)];
+    pkt.style.transform = 'translate(' + s.x + 'px, 0px)';
+    rects.forEach(function (r) { var on = +r.dataset.dev === s.at; r.style.stroke = on ? '#b00000' : ''; r.style.strokeWidth = on ? 4.5 : ''; });
+    [['smac', s.mac[0], prev.mac[0]], ['dmac', s.mac[1], prev.mac[1]], ['ttl', s.ttl, prev.ttl]].forEach(function (f) {
+      var el = $('[data-f=' + f[0] + ']', hdr);
+      $('b', el).textContent = f[1];
+      $('s', el).textContent = s.changed ? 'was ' + f[2] : '';
+      el.classList.remove('flash'); if (s.changed) { void el.offsetWidth; el.classList.add('flash'); }
+    });
+    cap.textContent = s.text;
+    back.disabled = i === 0; next.disabled = i === TRACE.length - 1;
+    count.textContent = 'Step ' + (i + 1) + ' of ' + TRACE.length;
+    seen = Math.max(seen, i); rec.i = i; rec.seen = seen; save();
+    if (seen >= TRACE.length - 1) finish(10, null);
+  }
+  back.addEventListener('click', function () { if (i > 0) { i--; paint(); } });
+  next.addEventListener('click', function () { if (i < TRACE.length - 1) { i++; paint(); } });
+  paint();
+};
+
+// --- the addresses on each link of the path (after last year's exercise)
+GATES.hops = function (box, rec, finish) {
+  var MACS = ['MAC_A', 'MAC_R1_1', 'MAC_R1_2', 'MAC_R1_3', 'MAC_R2_1', 'MAC_R2_2', 'MAC_R3_1', 'MAC_R3_2', 'MAC_R3_3', 'MAC_B'];
+  var IPS = ['IP_A', 'IP_R1_1', 'IP_R1_2', 'IP_R1_3', 'IP_R2_1', 'IP_R2_2', 'IP_R3_1', 'IP_R3_2', 'IP_R3_3', 'IP_B'];
+  var ROWS = [['A → R1', 'MAC_A', 'MAC_R1_1'], ['R1 → R2', 'MAC_R1_2', 'MAC_R2_1'], ['R2 → R3', 'MAC_R2_2', 'MAC_R3_1'], ['R3 → B', 'MAC_R3_3', 'MAC_B']];
+  var tries = rec.tries || 0, v = rec.v && rec.v.length === 16 ? rec.v : [];
+  var tab = h('table', { class: 'ft words' }, '<tr><th>on the link</th><th>source MAC</th><th>destination MAC</th><th>source IP</th><th>destination IP</th></tr>');
+  var sels = [];
+  ROWS.forEach(function (r, i) {
+    var tr = h('tr', {}, '<td>' + r[0] + '</td>');
+    [r[1], r[2], 'IP_A', 'IP_B'].forEach(function (ans, j) {
+      var list = j < 2 ? MACS : IPS, td = h('td');
+      var s = h('select', { 'aria-label': ['source MAC', 'destination MAC', 'source IP', 'destination IP'][j] + ' on the link ' + r[0] }, '<option value="">pick one</option>' + list.map(function (o) { return '<option>' + o + '</option>'; }).join(''));
+      s.dataset.ans = ans; s.dataset.col = j;
+      if (rec.done) { s.value = ans; s.disabled = true; } else if (v[i * 4 + j]) s.value = v[i * 4 + j];
+      s.addEventListener('change', function () { td.classList.remove('miss'); rec.v = sels.map(function (x) { return x.value; }); save(); });
+      td.append(s); tr.append(td); sels.push(s);
+    });
+    tab.append(tr);
+  });
+  var btn = h('button', { class: 'btn' }, 'Check'), fb = h('p', { class: 'fb', hidden: '' });
+  box.append(tab, btn, fb);
+  if (rec.done) btn.hidden = true;
+  btn.addEventListener('click', function () {
+    var wrong = 0, macWrong = false, ipWrong = false;
+    sels.forEach(function (s) { var ok = s.value === s.dataset.ans; s.parentNode.classList.toggle('miss', !ok); if (!ok) { wrong++; if (+s.dataset.col < 2) macWrong = true; else ipWrong = true; } });
+    fb.hidden = false;
+    if (wrong) {
+      tries++; rec.tries = tries; save(); fb.className = 'fb no';
+      fb.textContent = wrong + (wrong === 1 ? ' address is' : ' addresses are') + ' not right yet (in red).' + (ipWrong ? ' Do the IP addresses change along the path?' : '') + (macWrong ? ' For the MAC addresses, think about which two interfaces are at the two ends of each link.' : '');
+    } else {
+      fb.className = 'fb ok'; fb.textContent = 'Correct, all 16 addresses are right.';
+      sels.forEach(function (s) { s.disabled = true; }); btn.hidden = true; finish([30, 20, 10][Math.min(tries, 2)], null);
+    }
+  });
+};
+GATES.hops.review = true;
+
+// ---------------------------------------------------------------- steps
+function openStep(i, scroll) {
+  var st = steps[i];
+  st.hidden = false;
+  if (scroll) setTimeout(function () { window.scrollTo(0, st.getBoundingClientRect().top + window.scrollY - 60); }, 30);
+  paintBar();
+}
+function stepDone(i) {
+  var st = steps[i];
+  $$('.after', st).forEach(function (a) { a.hidden = false; });
+  var nb = $('.btn.next', st);
+  if (nb) nb.hidden = OPEN || S.cur > i;
+}
+var halfname = '', exN = 0;
+steps.forEach(function (st, i) {
+  st.hidden = true;
+  if (st.dataset.half) halfname = st.dataset.half.split(':')[0];
+  if (halfname && st.id !== 'end') st.dataset.halfname = halfname;
+  if (st.dataset.half) st.prepend(h('p', { class: 'half' }, esc(st.dataset.half)));
+  var gates = $$('.gate', st);
+  // an "after" block appears once every box before it in the step is done
+  var afters = $$('.after', st).map(function (a) {
+    a.hidden = true;
+    return { el: a, need: gates.filter(function (g) { return g.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING; }) };
+  });
+  if (i < steps.length - 1) {
+    var nb = h('button', { class: 'btn next', hidden: '' }, i === 0 ? 'Start' : steps[i + 1].dataset.half ? 'Start Part II' : 'Continue');
+    nb.addEventListener('click', function () { nb.hidden = true; S.cur = i + 1; save(); openStep(i + 1, true); });
+    st.append(nb);
+  }
+  function isDone(g) { return (S.g[g.dataset.id] || {}).done; }
+  function refresh() {
+    afters.forEach(function (a) { if (OPEN || a.need.every(isDone)) a.el.hidden = false; });
+    if (gates.every(isDone)) stepDone(i);
+  }
+  gates.forEach(function (g, k) {
+    var gid = st.id + '.' + k; g.dataset.id = gid;
+    var rec = S.g[gid] || (S.g[gid] = {});
+    g.prepend(h('p', { class: 'turn' }, 'Exercise ' + (++exN)));
+    if (rec.done) g.classList.add('done');
+    GATES[g.dataset.gate](g, rec, function (pts, v) {
+      rec.done = true; if (v != null) rec.v = v; g.classList.add('done');
+      award(gid, pts);
+      refresh();
+    });
+  });
+  refresh();
+});
+if (OPEN || S.cur > steps.length - 1) S.cur = steps.length - 1;
+for (var i = 0; i <= S.cur && i < steps.length; i++) openStep(i, false);
+if (S.cur > 0 && !OPEN) setTimeout(function () { window.scrollTo(0, steps[S.cur].getBoundingClientRect().top + window.scrollY - 60); }, 50);
+
+// ---------------------------------------------------------------- questions
+var dlg = $('#askdlg');
+function stepTitle(st) { var x = $('h2', st) || $('.turn', st); return x && x.textContent.trim() ? x.textContent.trim() : st.id; }
+function nearest() {            // the open step closest to the middle of the window
+  var mid = window.innerHeight / 2, best = S.cur, bd = Infinity;
+  steps.forEach(function (st, i) { if (st.hidden) return; var r = st.getBoundingClientRect(); var d = r.top <= mid && r.bottom >= mid ? 0 : Math.min(Math.abs(r.top - mid), Math.abs(r.bottom - mid)); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+$('#ask').addEventListener('click', function () {
+  var sel = $('#askabout'), n = nearest();
+  sel.innerHTML = steps.map(function (st, i) { return st.hidden ? '' : '<option value="' + i + '"' + (i === n ? ' selected' : '') + '>' + esc(stepTitle(st)) + '</option>'; }).join('') + '<option value="-1">Something else</option>';
+  $('#asktext').value = ''; $('#asksave').disabled = true;
+  dlg.showModal(); $('#asktext').focus();
+});
+$('#asktext').addEventListener('input', function () { $('#asksave').disabled = this.value.trim().length < 5; });
+$('#askcancel').addEventListener('click', function () { dlg.close(); });
+$('#asksave').addEventListener('click', function () {
+  var i = +$('#askabout').value;
+  S.q.push({ about: i < 0 ? 'Something else' : stepTitle(steps[i]), text: $('#asktext').value.trim(), at: new Date().toISOString() });
+  award('q.' + S.q.length, S.q.length <= 3 ? 5 : 0);   // a few points for the first three questions
+  save(); dlg.close(); paintQuestions();
+});
+function paintQuestions() {
+  $('#ask').textContent = 'Ask a question' + (S.q.length ? ' (' + S.q.length + ')' : '');
+  var ul = $('#qlist'); ul.innerHTML = '';
+  S.q.forEach(function (q, i) {
+    var li = h('li', {}, '<button aria-label="Delete this question">delete</button><div class="about">About: ' + esc(q.about) + '</div>' + esc(q.text));
+    $('button', li).addEventListener('click', function () { S.q.splice(i, 1); save(); paintQuestions(); });
+    ul.append(li);
+  });
+  $('#qnone').hidden = S.q.length > 0;
+  $('#sendbox').hidden = S.q.length === 0;
+  $('#export').value = 'CS 456/656 lecture 13 questions\n\n' + S.q.map(function (q, i) { return (i + 1) + '. [' + q.about + '] ' + q.text; }).join('\n\n');
+  $('#sendhow').textContent = CONFIG.submitUrl ? 'Press Send to send me your questions.' : CONFIG.emailTo ? 'Press "Email my questions" to send them to me. It opens your email program with the questions already filled in. If nothing opens, copy your questions and email them to ' + CONFIG.emailTo + ' with the subject "' + CONFIG.emailSubject + '".' : CONFIG.postInstruction;
+  $('#sendhow').hidden = !$('#sendhow').textContent;
+  $('#send').hidden = !CONFIG.submitUrl;
+  $('#copy').hidden = !!CONFIG.submitUrl;
+  $('#email').hidden = !CONFIG.emailTo || !!CONFIG.submitUrl;
+}
+function copyText(t) { return (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).catch(function () { var a = h('textarea'); a.value = t; document.body.append(a); a.select(); document.execCommand('copy'); a.remove(); }); }
+$('#copy').addEventListener('click', function () { copyText($('#export').value); $('#sent').textContent = 'Copied.'; });
+$('#email').addEventListener('click', function () {
+  location.href = 'mailto:' + CONFIG.emailTo + '?subject=' + encodeURIComponent(CONFIG.emailSubject) + '&body=' + encodeURIComponent($('#export').value);
+  $('#sent').textContent = 'Your email program should open now. Press send there.';
+});
+$('#send').addEventListener('click', function () {
+  $('#sent').textContent = 'Sending…';
+  fetch(CONFIG.submitUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ lecture: 13, questions: S.q }) })
+    .then(function () { $('#sent').textContent = 'Sent. Thank you.'; })
+    .catch(function () { $('#sent').textContent = 'That did not go through. Please copy your questions instead.'; $('#copy').hidden = false; });
+});
+$('#reset').addEventListener('click', function () {
+  if (confirm('Erase your answers, points and questions for this lecture and start over?')) { try { localStorage.removeItem(KEY); } catch (e) {} location.replace(location.href.split('#')[0]); }
+});
+paintBar(); paintQuestions();
+if (!canSave) warnNoSave();
+function openPrint(all) { window.open(location.href.split(/[?#]/)[0] + (all === true ? '?print=all' : '?print'), '_blank'); }
+$('#topdf').addEventListener('click', function () { openPrint(false); });
+if (PRINT) {
+  document.body.classList.add('printing');
+  var pn = h('p', { id: 'printnote', class: 'warn' }, (PRINTALL ? 'This is the whole lecture on one page.' : 'This is the lecture up to where you are now.') + ' In the print window, choose "Save as PDF" as the printer.');
+  $('main').insertBefore(pn, $('main').firstChild);
+  setTimeout(function () { window.print(); }, 700);
+}
+
+// ---------------------------------------------------------------- review mode
+// index.html?review : every step is open, the text can be edited in place, and a comment can be attached
+// to any text, figure or box. "Download review" writes lec13-review.md with every edit (was / now) and comment.
+if (REVIEW) (function () {
+  var RKEY = 'cs456-f26-lec13-review';
+  var R = { edits: {}, notes: {}, general: '', was: {} };
+  try { var r = JSON.parse(localStorage.getItem(RKEY)); if (r && r.edits) R = r; } catch (e) {}
+  function keep() { try { localStorage.setItem(RKEY, JSON.stringify(R)); } catch (e) {} count(); }
+  document.body.classList.add('rv');
+  $('#ask').hidden = true; $('footer').hidden = true;
+
+  // the options of multiple-choice boxes, and what is shown after each, as editable text under the box
+  $$('.gate[data-gate=choice]').forEach(function (g) {
+    var blk = h('div', { class: 'rv-opts' }, '<p class="lab">Review only, students do not see this: the options, and what is shown after each</p>');
+    $$('.opts button', g).forEach(function (b, k) {
+      var right = b.dataset.k === g.dataset.answer;
+      var o = h('p', { 'data-rk': g.dataset.rk + ':option' + (k + 1) }, b.innerHTML); ORIG[o.dataset.rk] = b.innerHTML;
+      blk.append(h('p', { class: 'lab' }, 'option ' + (k + 1) + (right ? ' (the answer)' : '')), o);
+      var t = right ? g.dataset.ok : b.dataset.fb;
+      if (t) { var f = h('p', { 'data-rk': g.dataset.rk + ':after-option' + (k + 1) }, esc(t)); ORIG[f.dataset.rk] = f.innerHTML; blk.append(h('p', { class: 'lab' }, 'shown after option ' + (k + 1)), f); }
+    });
+    g.append(blk);
+  });
+  $$('.gate[data-gate=fill]').forEach(function (g) {
+    var blk = h('div', { class: 'rv-opts' }, '<p class="lab">Review only, students do not see this: shown after the right answer</p>');
+    var f = h('p', { 'data-rk': g.dataset.rk + ':answer' }, esc(g.dataset.answer)); ORIG[f.dataset.rk] = f.innerHTML; blk.append(f); g.append(blk);
+  });
+
+  // everything else a student can read: the title, section labels, shared labels, and the text the code generates
+  function mark(el, k) { if (el) { el.dataset.rk = k; if (!(k in ORIG)) ORIG[k] = el.innerHTML; } }
+  mark($('main h1'), 'page:title'); mark($('main .sub'), 'page:subtitle'); mark($('#qnone'), 'end:no-questions');
+  steps.forEach(function (st) { mark($('.half', st), st.id + ':half-title'); mark($('.chap', st), st.id + ':section'); });
+  $$('.said').forEach(function (el) { mark(el, 'ui:what-i-would-have-said'); });
+  // a dashed block of editable lines: items are [key, label, text]
+  function extra(title, items) {
+    var blk = h('details', { class: 'rv-opts' }, '<summary>' + title + '</summary>');
+    items.forEach(function (it) { var e = h('p', { 'data-rk': it[0] }, it[2]); ORIG[it[0]] = e.innerHTML; blk.append(h('p', { class: 'lab' }, it[1]), e); });
+    return blk;
+  }
+  function under(type, items) {
+    $$('.gate[data-gate=' + type + ']').forEach(function (g) {
+      g.append(extra('Review only, students do not see this: the messages this exercise can show. Click to open and edit them.', items.map(function (it) { return [g.dataset.rk + ':' + it[0], it[1], it[2]]; })));
+    });
+  }
+  under('fill', [['hint', 'shown after a wrong answer', 'Not quite. Think about how many bits in the prefix are fixed, and how many are wildcards, i.e., can be anything. How many different concrete values can be represented with those bits?']]);
+  under('table', [
+    ['dup', 'two endpoints with the same address (shown at once, and on Check)', '{endpoints} have the same address, {address}. Each endpoint needs its own address.'],
+    ['count', 'above the table', 'R1\'s forwarding table: {n} entries'], ['head1', 'table', 'destination'], ['head2', 'table', 'send on'], ['remove', 'button in each row', 'remove'], ['add', 'button', 'Add an entry'], ['give', 'button, after three tries', 'Show me a solution'],
+    ['empty', 'an entry with no destination', 'Entry {i} has no destination. Fill it in, or remove the entry.'],
+    ['outside', 'a destination outside the 16 addresses', 'Entry {i}: "{text}" includes an address that is not one of the 16 addresses in this exercise (10.0.0.0 to 10.0.0.15).'],
+    ['unreadable', 'a destination the page cannot read', 'Entry {i}: I cannot tell which addresses "{text}" is for. You can write one address as 10.0.0.5, several as a comma-separated list (e.g., 10.0.0.1, 10.0.0.4), or a range (e.g., 10.0.0.0 - 10.0.0.3).'],
+    ['nomatch', 'an endpoint with no entry', 'A packet destined for {endpoint} ({address}) will match no entry.'],
+    ['conflict', 'an endpoint with two entries that disagree', 'A packet destined for {endpoint} ({address}) matches more than one entry, and they conflict.'],
+    ['wrong', 'an endpoint with the wrong link', 'A packet destined for {endpoint} ({address}) would be sent on link {x}, but {endpoint} can only be reached through link {y}.'],
+    ['same', 'works, still 12 entries', 'This table works, but it still has {n} entries.'],
+    ['ok', 'works, 4 to 11 entries', 'This table works, but it still has more entries than it needs. You can continue to the next part, or try to make it smaller.'],
+    ['best', 'works, 3 entries', 'This table works, and it has {n} entries. That is the smallest possible.']]);
+  under('lpm', [
+    ['ask', 'the question', 'Packet {i} of 5: destination {address}'],
+    ['right', 'right entry', '{address} uses {prefix}.'],
+    ['right-default', 'right entry, when it is the default entry', '{address} uses 0.0.0.0/0, the default entry. No other entry matches.'],
+    ['shorter', 'an entry that matches but is not the longest', 'This entry matches, but another entry that matches has a longer prefix.'],
+    ['nomatch', 'an entry that does not match', 'This entry does not match: the first {n} bits of {address} are not the same as in {prefix}.'],
+    ['done', 'at the end', 'All 5 packets forwarded.']]);
+  under('carve', [
+    ['b1', 'building 1', 'Library: 400 endpoints'], ['b2', 'building 2', 'Engineering: 200 endpoints'], ['b3', 'building 3', 'Residence: 100 endpoints'],
+    ['size', 'first menu', 'size of the block'], ['which', 'second menu', 'which block'],
+    ['missing', 'a building has no block yet', 'Pick a block for {building} first.'],
+    ['small', 'a block is too small', 'A /{n} has {size} addresses, and {building} needs {need}.'],
+    ['overlap', 'two blocks overlap', 'The blocks of {building} and {building} overlap (in red). An address can only be in one of them.'],
+    ['ok', 'works, addresses left', 'This works, and {n} addresses are left unused for future buildings.'],
+    ['full', 'works, no address left', 'This works for the three buildings, but every address is used, so nothing is left for future buildings. Can one of the buildings have a smaller block?']]);
+  function rounds(type, list, more) {
+    var items = [];
+    list.forEach(function (r, i) {
+      items.push(['step' + (i + 1) + '-question', 'question ' + (i + 1), r.q]);
+      r.opts.forEach(function (o, j) {
+        items.push(['step' + (i + 1) + '-option' + (j + 1), 'question ' + (i + 1) + ', option ' + (j + 1) + (o.ok ? ' (the answer)' : ''), o.t]);
+        if (o.fb) items.push(['step' + (i + 1) + '-after-option' + (j + 1), 'shown after option ' + (j + 1), o.fb]);
+      });
+      items.push(['step' + (i + 1) + '-after', 'shown after the answer', r.after]);
+    });
+    under(type, items.concat(more));
+  }
+  under('trace', TRACE.map(function (s, k) { return ['step' + (k + 1), 'step ' + (k + 1), s.text]; }).concat([['same', 'key', 'stays the same from the laptop to the server'], ['chg', 'key', 'changes at every router'], ['was', 'under a changed field', 'was {old value}'], ['back', 'button', 'Back'], ['next', 'button', 'Next'], ['count', 'next to the buttons', 'Step {i} of 8']]));
+  under('hops', [['head', 'table headings', 'on the link / source MAC / destination MAC / source IP / destination IP'], ['rows', 'rows', 'A → R1 / R1 → R2 / R2 → R3 / R3 → B'],
+    ['wrong', 'some addresses wrong', '{n} addresses are not right yet (in red). Do the IP addresses change along the path? For the MAC addresses, think about which two interfaces are at the two ends of each link.'],
+    ['ok', 'all right', 'Correct, all 16 addresses are right.']]);
+  var shared = extra('Review only, students do not see this: buttons, labels and messages used in several places. Click to open and edit them.', [
+    ['ui:exercise-label', 'label on each exercise box', 'Exercise {n}'],
+    ['ui:start', 'button on the first step', 'Start'], ['ui:continue', 'button after each step', 'Continue'],
+    ['ui:think-done', 'button in a writing box', 'Done'], ['ui:think-more', 'writing box, too short', 'Write a bit more to continue.'], ['ui:think-saved', 'writing box, done', 'Saved.'],
+    ['ui:check', 'button', 'Check'], ['ui:show-me', 'button after two wrong tries', 'Show me'], ['ui:try-again', 'wrong option with no message of its own', 'Not this one. Try again.'],
+    ['ui:points', 'top bar', '{n} points'], ['ui:bar', 'top bar', 'Lecture 13 · {half} · {section}'], ['ui:finished', 'last step', 'You finished with {n} points.'],
+    ['ui:table-caption', 'tables', 'R1\'s forwarding table'], ['ui:table-head1', 'tables', 'destination'], ['ui:table-head2', 'tables', 'send on'],
+    ['ui:ask', 'button, bottom right', 'Ask a question'], ['ui:ask-about', 'question window', 'About:'], ['ui:ask-else', 'question window', 'Something else'], ['ui:ask-placeholder', 'question window', 'Type your question here.'], ['ui:ask-cancel', 'question window', 'Cancel'], ['ui:ask-save', 'question window', 'Save question'],
+    ['ui:q-about', 'list of questions', 'About: {step}'], ['ui:q-delete', 'list of questions', 'delete'], ['ui:q-email', 'last step', 'Email my questions'], ['ui:q-copy', 'last step', 'Copy my questions'], ['ui:q-copied', 'last step', 'Copied.'],
+    ['ui:reset', 'bottom of the page', 'Start this lecture over'], ['ui:reset-note', 'bottom of the page', '(this erases your answers, points and questions in this browser)'], ['ui:reset-confirm', 'bottom of the page', 'Erase your answers, points and questions for this lecture and start over?'],
+    ['ui:no-save', 'warning when the browser cannot save', 'This browser is not saving your progress (for example, in a private window). You can still do the lecture, but keep this tab open until you are done.']]);
+  $('main').insertBefore(shared, steps[0]);
+
+  if (!R.was) R.was = {};
+  // comments from reviews that are already applied (replaced after each review), so they do not come back in the next file
+  var APPLIED_NOTES = { 'multi:figure0': 'link 1 is barely visible. The rest of the internet should be a cloud.', 'move:figure0': 'Some fonts are too small.', 'routing:figure0': 'You are not showing the endpoints, so this is not intuitive enough yet.', 'nets:figure0': 'remove the edge and the core from the figure. Instead of a company, a home, a store, give names it is more intuitive for students.' };
+  Object.keys(APPLIED_NOTES).forEach(function (k) { if ((R.notes[k] || '').trim() === APPLIED_NOTES[k]) delete R.notes[k]; });
+  if ((R.notes['routing:figure0'] || '').trim() === 'link weights are missing. Make every row, cost to X: Y') delete R.notes['routing:figure0'];
+  if (R.round !== 15) { delete R.edits['tables:16']; R.round = 15; }   // applied notes left in titles   // review 5: the question in exercise 1 is no longer bold
+  if (!R.round2) {   // review 2 (Nov 18) is applied: its edits, and its general comments, are in the page now
+    Object.keys(R.edits).forEach(function (k) { if (/^(how|where-we-were|net|sort):|^ui:your-turn$/.test(k)) delete R.edits[k]; });
+    R.general = ''; R.round2 = 1;
+  }
+  // drop edits that are already in the page, and edits made to text that has since been rewritten
+  Object.keys(R.edits).forEach(function (k) { if (R.edits[k] === ORIG[k] || !(k in ORIG) || (k in R.was && R.was[k] !== ORIG[k])) { delete R.edits[k]; delete R.was[k]; } });
+  var editable = $$('[data-rk]').filter(function (el) { return el.dataset.rk in ORIG; });
+  editable.forEach(function (el) {
+    var k = el.dataset.rk;
+    if (k in R.edits) { el.innerHTML = R.edits[k]; el.classList.add('rv-edited'); }
+    el.contentEditable = 'true'; el.spellcheck = true;
+    el.addEventListener('input', function () {
+      var same = el.innerHTML === ORIG[k];
+      if (same) { delete R.edits[k]; delete R.was[k]; } else { R.edits[k] = el.innerHTML; R.was[k] = ORIG[k]; }
+      $$('[data-rk="' + k + '"]').forEach(function (o) { if (o !== el) o.innerHTML = el.innerHTML; o.classList.toggle('rv-edited', !same); });   // a shared label changes everywhere
+      keep();
+    });
+  });
+
+  var cur = null;
+  function snippet(el) { var t = (el.classList.contains('gate') ? 'the box: ' + ($('.q', el) ? $('.q', el).textContent : el.dataset.gate) : el.matches('[data-fig], img') ? 'the figure' : el.textContent).trim().replace(/\s+/g, ' '); return t.length > 70 ? t.slice(0, 70) + '…' : t; }
+  function anchor(el) { return el.closest('table, ul, .rv-opts') && !el.classList.contains('gate') ? el.closest('table, ul, .rv-opts') : el; }
+  function showNote(k, focus) {
+    var el = $('[data-rk="' + k + '"]'); if (!el) return;
+    var box = $('.rv-note[data-for="' + k + '"]');
+    if (!box) {
+      box = h('div', { class: 'rv-note', 'data-for': k, contenteditable: 'false' }, '<div class="on"></div><textarea autocomplete="off" placeholder="Your comment"></textarea><button>delete comment</button>');
+      $('.on', box).textContent = 'Comment on: “' + snippet(el) + '”';
+      var ta = $('textarea', box); ta.value = R.notes[k] || '';
+      ta.addEventListener('input', function () { R.notes[k] = ta.value; keep(); });
+      $('button', box).addEventListener('click', function () { delete R.notes[k]; box.remove(); keep(); });
+      var a = anchor(el), last = a;
+      while (last.nextElementSibling && last.nextElementSibling.classList.contains('rv-note')) last = last.nextElementSibling;
+      last.after(box);
+    }
+    if (focus) $('textarea', box).focus();
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#rvbar, .rv-note')) return;
+    var el = e.target.closest('[data-rk]');
+    if (cur) cur.classList.remove('rv-cur');
+    cur = el; if (cur) cur.classList.add('rv-cur');
+    $('#rvadd').disabled = !cur;
+  });
+
+  var bar = h('div', { id: 'rvbar' }, '<b>Review mode.</b> Click any text to edit it. Dashed blocks are for review only: students do not see them. <button id="rvadd" disabled>Comment on the selected part</button> <button id="rvcopy">Copy review</button> <button id="rvdown">Download review</button> <button id="rvpdf">Whole lecture as PDF</button> <button id="rvclear">Clear review</button> <span class="n" id="rvn"></span>');
+  document.body.append(bar);
+  var gen = h('div', { class: 'rv-note' }, '<div class="on">General comments on the lecture (anything not tied to one place)</div><textarea autocomplete="off" id="rvgen"></textarea>');
+  $('main').insertBefore(gen, shared);
+  $('#rvgen').value = R.general || '';
+  $('#rvgen').addEventListener('input', function () { R.general = this.value; keep(); });
+  function count() { var n = $('#rvn'); if (n) n.textContent = Object.keys(R.edits).length + ' edits, ' + Object.keys(R.notes).filter(function (k) { return R.notes[k].trim(); }).length + ' comments (saved in this browser)'; }
+  $('#rvadd').addEventListener('click', function () { if (cur) { if (!(cur.dataset.rk in R.notes)) R.notes[cur.dataset.rk] = ''; showNote(cur.dataset.rk, true); } });
+  Object.keys(R.notes).forEach(function (k) { showNote(k, false); });
+
+  function report() {
+    var out = '# Lecture 13 review\n\n';
+    if ((R.general || '').trim()) out += '## General\n\n' + R.general.trim() + '\n\n';
+    var SHARED = 'Page title and shared text', parts = {}, order = [SHARED], seen = {};
+    $$('[data-rk]').forEach(function (el) {
+      var k = el.dataset.rk; if (seen[k]) return; seen[k] = 1;
+      var st = /^ui:/.test(k) ? null : el.closest('.step'), name = st ? st.id + ': ' + stepTitle(st) : SHARED, part = '';
+      if (k in R.edits) part += 'EDIT ' + k + '\n  was: ' + ORIG[k] + '\n  now: ' + R.edits[k] + '\n\n';
+      if ((R.notes[k] || '').trim()) part += 'COMMENT ' + k + ' (on: "' + snippet(el) + '")\n  ' + R.notes[k].trim().replace(/\n/g, '\n  ') + '\n\n';
+      if (part) { if (!(name in parts)) { parts[name] = ''; if (name !== SHARED) order.push(name); } parts[name] += part; }
+    });
+    order.forEach(function (name) { if (parts[name]) out += '## ' + name + '\n\n' + parts[name]; });
+    return out;
+  }
+  $('#rvcopy').addEventListener('click', function () { copyText(report()); this.textContent = 'Copied'; var b = this; setTimeout(function () { b.textContent = 'Copy review'; }, 1500); });
+  $('#rvdown').addEventListener('click', function () {
+    var a = h('a', { href: URL.createObjectURL(new Blob([report()], { type: 'text/markdown' })), download: 'lec13-review.md' });
+    document.body.append(a); a.click(); a.remove();
+  });
+  $('#rvpdf').addEventListener('click', function () { openPrint(true); });
+  $('#rvclear').addEventListener('click', function () { if (confirm('Erase all your edits and comments in this browser?')) { try { localStorage.removeItem(RKEY); } catch (e) {} location.replace(location.href.split('#')[0]); } });
+  count();
+  window.__review = { report: report, R: R };
+})();
+
+window.__lec13 = { S: S, steps: steps };
+})();
+</script>
+</body>
+</html>
